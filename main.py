@@ -64,6 +64,7 @@ def main():
                 print('------- PLACING NEW ORDER -------')
                 print('---------------------------------\n')
 
+                time.sleep(1)
                 candles, error_message = data_downloader.get_current_data('EUR_USD', ['bid', 'ask'], 'M30')
 
                 if error_message is not None:
