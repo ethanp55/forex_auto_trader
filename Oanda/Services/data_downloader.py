@@ -2,18 +2,20 @@ import v20
 from datetime import datetime
 from Oanda.Config.config import Config
 
-
 """
 A class for downloading historical forex data
 """
+
+
 class DataDownloader:
     """
     The init function sets up valid values for various parameters that will need to be passed in before downloading
     historical data
     """
+
     def __init__(self):
         # A list of currency pairs that we can download data for
-        self.available_currency_pairs = ['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF','USD_CAD', 'AUD_USD', 'NZD_USD',
+        self.available_currency_pairs = ['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF', 'USD_CAD', 'AUD_USD', 'NZD_USD',
                                          'EUR_GBP', 'EUR_CHF', 'GBP_JPY']
 
         # A list of valid candle types
@@ -25,18 +27,20 @@ class DataDownloader:
     """
     This is a helper function that will make sure the parameters passed to the historical data download function are 
     valid
-    
+
     Parameters:
         currency_pair (str): The currency pair to grab data for
         candle_types (str): The type of candles to get (bid, ask, or mid)
         time_frame_granularity (str): The time frame to make each candle
         from_time (str): The first date/time to grab the candles from
         to_time (str): The last date/time to grab the candles from
-        
+
     Returns:
         A boolean (true if the parameters passes, false otherwise) and an error message (null if the parameters pass)
     """
-    def _check_historical_data_parameters(self, currency_pair, candle_types, time_frame_granularity, from_time, to_time):
+
+    def _check_historical_data_parameters(self, currency_pair, candle_types, time_frame_granularity, from_time,
+                                          to_time):
         # Check if the currency pair is valid
         if currency_pair not in self.available_currency_pairs:
             return False, 'Invalid currency pair'
@@ -61,18 +65,19 @@ class DataDownloader:
 
     """
     This is the main function for grabbing historical data
-    
+
     Parameters:
         currency_pair (str): The currency pair to grab data for
         candle_types (str): The type of candles to get (bid, ask, or mid)
         time_frame_granularity (str): The time frame to make each candle
         from_time (str): The first date/time to grab the candles from
         to_time (str): The last date/time to grab the candles from
-        
+
     Returns:
         A list of the candles (null if the parameters are incorrect or if there was an error) and an error message 
         (null if the data download was successful)
     """
+
     def get_historical_data(self, currency_pair, candle_types, time_frame_granularity, from_time, to_time):
         # Check the parameters
         valid_params, error_message = self._check_historical_data_parameters(currency_pair, candle_types,

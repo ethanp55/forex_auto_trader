@@ -12,7 +12,7 @@ class CurrentDataSequence:
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 
-    def update_current_data_sequence(self, nfp_actual, nfp_forecast, nfp_previous):
+    def update_current_data_sequence(self, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
         curr_date = datetime.now()
         minutes = 0 if curr_date.minute < 30 else 30
         d = datetime(curr_date.year, 3, 8)
@@ -44,12 +44,22 @@ class CurrentDataSequence:
         for candle in candles:
             curr_date = candle.time
             curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
-            row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c), float(nfp_actual), float(nfp_forecast), float(nfp_previous)]
+            curr_date_datetime = datetime.strptime(curr_date, '%Y-%m-%d %H:%M:%S')
+
+            if curr_date_datetime < prev_nfp_date:
+                nfp_actual_to_use = prev_nfp_actual
+                nfp_forecast_to_use = prev_nfp_forecast
+                nfp_previous_to_use = prev_nfp_previous
+
+            else:
+                nfp_actual_to_use = nfp_actual
+                nfp_forecast_to_use = nfp_forecast
+                nfp_previous_to_use = nfp_previous
+
+            row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c), float(nfp_actual_to_use), float(nfp_forecast_to_use), float(nfp_previous_to_use)]
             np_data.append(row)
 
         np_data = np.array(np_data)
-
-        print('Last date for current sequence: ' + str(np_data[-1, 0]))
 
         self.current_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Nonfarm_Payroll_Actual', 'Nonfarm_Payroll_Forecast', 'Nonfarm_Payroll_Previous'])
         self.current_sequence.dropna(inplace=True)

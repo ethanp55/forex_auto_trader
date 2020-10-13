@@ -103,9 +103,14 @@ class DataFormatter(object):
         df['Ask_AROONOSC'] = talib.AROONOSC(df['Ask_High'], df['Ask_Low'], timeperiod=14)
         df['Ask_ATR'] = talib.ATR(df['Ask_High'], df['Ask_Low'], df['Ask_Close'], timeperiod=14)
 
+        dates = df['Date']
         df.drop('Date', axis=1, inplace=True)
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        return self.scaler.transform(df)
+        df = self.scaler.transform(df)
+
+        print('Last date for current sequence: ' + str(dates[-1]))
+
+        return df

@@ -48,8 +48,10 @@ def main():
         print(dt)
 
         if not order_in_place:
-            nfp_actual, nfp_forecast, nfp_previous = train_data_updater.get_previous_nfp_data()
-            current_data_update_success = current_data_sequence.update_current_data_sequence(nfp_actual, nfp_forecast, nfp_previous)
+            prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous = train_data_updater.get_old_nfp_data()
+            nfp_actual, nfp_forecast, nfp_previous = train_data_updater.get_new_nfp_data()
+
+            current_data_update_success = current_data_sequence.update_current_data_sequence(nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous)
 
             if not current_data_update_success:
                 print('Error in current data sequence')

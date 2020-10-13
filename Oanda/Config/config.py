@@ -1,28 +1,52 @@
 from os import environ
 
-# config_vars = {
-#     'host_name': environ['HOST_NAME'],
-#     'streaming_host_name': environ['STREAMING_HOST_NAME'],
-#     'port': environ['PORT'],
-#     'ssl': environ['SSL'],
-#     'api_token': environ['API_TOKEN'],
-#     'username': environ['USER_NAME'],
-#     'date_format': environ['DATE_FORMAT'],
-#     'time_zone': environ['TIME_ZONE'],
-#     'account': environ['ACCOUNT']
-# }
+print('\nCONFIG -------------------')
+print(environ['HOST_NAME'])
+print(type(environ['HOST_NAME']))
+print(environ['STREAMING_HOST_NAME'])
+print(type(environ['STREAMING_HOST_NAME']))
+print(environ['OANDA_PORT'])
+print(type(environ['OANDA_PORT']))
+print(environ['SSL'])
+print(type(environ['SSL']))
+print(environ['API_TOKEN'])
+print(type(environ['API_TOKEN']))
+print(environ['USER_NAME'])
+print(type(environ['USER_NAME']))
+print(environ['DATE_FORMAT'])
+print(type(environ['DATE_FORMAT']))
+print(environ['TIME_ZONE'])
+print(type(environ['TIME_ZONE']))
+print(environ['ACCOUNT'])
+print(type(environ['ACCOUNT']))
+print('-------------------------')
+print()
+
+
 
 config_vars = {
-    'host_name': 'api-fxpractice.oanda.com',
-    'streaming_host_name': 'stream-fxpractice.oanda.com',
-    'port': '443',
-    'ssl': 'true',
-    'api_token': 'e0675007e3e6c16e87fdf62f731af32c-1c7f9e04262d6b9006f89f6c27aa15d5',
-    'username': 'ethanp5',
-    'date_format': 'UNIX',
-    'time_zone': 'America/New_York',
-    'account': '101-001-7886923-001'
+    'host_name': environ['HOST_NAME'],
+    'streaming_host_name': environ['STREAMING_HOST_NAME'],
+    'port': environ['OANDA_PORT'],
+    'ssl': environ['SSL'],
+    'api_token': environ['API_TOKEN'],
+    'username': environ['USER_NAME'],
+    'date_format': environ['DATE_FORMAT'],
+    'time_zone': environ['TIME_ZONE'],
+    'account': environ['ACCOUNT']
 }
+
+# config_vars = {
+#     'host_name': 'api-fxpractice.oanda.com',
+#     'streaming_host_name': 'stream-fxpractice.oanda.com',
+#     'port': '443',
+#     'ssl': 'true',
+#     'api_token': 'e0675007e3e6c16e87fdf62f731af32c-1c7f9e04262d6b9006f89f6c27aa15d5',
+#     'username': 'ethanp5',
+#     'date_format': 'UNIX',
+#     'time_zone': 'America/New_York',
+#     'account': '101-001-7886923-001'
+# }
 
 
 class Config(object):
