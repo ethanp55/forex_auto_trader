@@ -4,8 +4,8 @@ from tensorflow.keras.models import load_model
 
 class ForexRNN:
     def __init__(self, proba_threshold=0.6):
-        self.eur_usd_rnn = load_model('Files/eur_usd_rnn.h5')
-        self.gbp_chf_rnn = load_model('Files/gbp_chf_rnn.h5')
+        self.eur_usd_rnn = load_model('Data/Files/eur_usd_rnn.h5')
+        self.gbp_chf_rnn = load_model('Data/Files/gbp_chf_rnn.h5')
         self.proba_threshold = proba_threshold
 
     def predict(self, currency_pair, input_vector):
