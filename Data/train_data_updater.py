@@ -8,7 +8,7 @@ import pytz as tz
 class TrainDataUpdater:
     def __init__(self):
         self.data_downloader = DataDownloader()
-        self.train_data = pd.read_csv('Data/Files/Oanda_Eur_Usd_M30_expanded.csv')
+        self.train_data = pd.read_csv('Files/Oanda_Eur_Usd_M30_expanded.csv')
         self.train_data.Date = pd.to_datetime(self.train_data.Date)
         self.train_data.dropna(inplace=True)
         self.train_data.reset_index(drop=True, inplace=True)
@@ -85,6 +85,6 @@ class TrainDataUpdater:
         self.train_data.dropna(inplace=True)
         self.train_data.reset_index(drop=True, inplace=True)
 
-        self.train_data.to_csv('Data/Files/Oanda_Eur_Usd_M30_expanded_test.csv', index=False)
+        self.train_data.to_csv('Files/Oanda_Eur_Usd_M30_expanded_test.csv', index=False)
 
         return True
