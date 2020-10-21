@@ -207,6 +207,11 @@ def main():
         print('---------------------------------------------------------------------------------')
         print(dt)
 
+        open_trades_success = _get_open_trades(dt)
+
+        if not open_trades_success:
+            continue
+
         if not open_eur_usd or not open_gbp_chf:
             data_sequences = {}
 
@@ -291,11 +296,6 @@ def main():
 
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
-
-        open_trades_success = _get_open_trades(dt)
-
-        if not open_trades_success:
-            continue
 
         print('---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')

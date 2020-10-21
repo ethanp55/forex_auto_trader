@@ -40,5 +40,4 @@ class ForexRNN:
         print(trade)
         print('------------------------------------------')
 
-        return None
-        # return trade
+        return trade

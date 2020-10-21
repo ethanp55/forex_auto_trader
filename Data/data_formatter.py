@@ -122,6 +122,4 @@ class DataFormatter(object):
 
         print('Last date for current sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
-        print(df[-1, :])
-
         return df
