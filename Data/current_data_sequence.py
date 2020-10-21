@@ -14,7 +14,7 @@ class CurrentDataSequence:
         self.data_formatter = DataFormatter()
 
     def update_gbp_chf_current_data_sequence(self):
-        curr_date = datetime.now()
+        curr_date = datetime.now(tz=tz.timezone('America/New_York'))
         minutes = 0 if curr_date.minute < 30 else 30
         d = datetime(curr_date.year, 3, 8)
         dston = d + timedelta(days=6-d.weekday())
@@ -65,7 +65,7 @@ class CurrentDataSequence:
         return True
 
     def update_eur_usd_current_data_sequence(self, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
-        curr_date = datetime.now()
+        curr_date = datetime.now(tz=tz.timezone('America/New_York'))
         minutes = 0 if curr_date.minute < 30 else 30
         d = datetime(curr_date.year, 3, 8)
         dston = d + timedelta(days=6-d.weekday())

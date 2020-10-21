@@ -23,7 +23,7 @@ class TrainDataUpdater:
     def update_train_data(self):
         previous_date = self.train_data.loc[self.train_data.index[-1], 'Date']
 
-        curr_date = datetime.now()
+        curr_date = datetime.now(tz=tz.timezone('America/New_York'))
         minutes = 0 if curr_date.minute < 30 else 30
         d = datetime(curr_date.year, 3, 8)
         dston = d + timedelta(days=6-d.weekday())

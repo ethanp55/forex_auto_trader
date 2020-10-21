@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import pytz as tz
 import time
 from Data.current_data_sequence import CurrentDataSequence
 from Oanda.Services.order_handler import OrderHandler
@@ -38,7 +39,7 @@ def _get_dt():
                 if new_utc_now.weekday() == 6 and new_utc_now.hour > 20:
                     break
 
-    dt = datetime.now().replace(microsecond=0, minute=minutes, second=0) + timedelta(minutes=30)
+    dt = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
     return dt
 
@@ -58,7 +59,7 @@ def _get_open_trades(dt):
         if error_message is not None:
             print(error_message)
 
-            while datetime.now() < dt:
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
                 time.sleep(1)
 
             return False
@@ -78,7 +79,7 @@ def _get_open_trades(dt):
         print(e)
         print(traceback.print_exc())
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         return False
@@ -95,7 +96,7 @@ def _update_eur_usd_current_data_sequence(dt, nfp_actual, nfp_forecast, nfp_prev
         if not current_data_update_success:
             print('Error updating EUR/USD data')
 
-            while datetime.now() < dt:
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
                 time.sleep(1)
 
             return False
@@ -109,7 +110,7 @@ def _update_eur_usd_current_data_sequence(dt, nfp_actual, nfp_forecast, nfp_prev
         print(e)
         print(traceback.print_exc())
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         return False
@@ -122,7 +123,7 @@ def _update_gbp_chf_current_data_sequence(dt):
         if not current_data_update_success:
             print('Error updating GBP/CHF data')
 
-            while datetime.now() < dt:
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
                 time.sleep(1)
 
             return False
@@ -136,7 +137,7 @@ def _update_gbp_chf_current_data_sequence(dt):
         print(e)
         print(traceback.print_exc())
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         return False
@@ -149,7 +150,7 @@ def _get_current_data(dt, currency_pair, candle_types, time_granularity):
         if error_message is not None:
             print(error_message)
 
-            while datetime.now() < dt:
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
                 time.sleep(1)
 
             return None
@@ -163,7 +164,7 @@ def _get_current_data(dt, currency_pair, candle_types, time_granularity):
         print(e)
         print(traceback.print_exc())
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         return None
@@ -182,7 +183,7 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
         print(e)
         print(traceback.print_exc())
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         return False
@@ -296,7 +297,7 @@ def main():
             if not open_eur_usd or not open_gbp_chf:
                 continue
 
-        while datetime.now() < dt:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
         print('---------------------------------------------------------------------------------')
