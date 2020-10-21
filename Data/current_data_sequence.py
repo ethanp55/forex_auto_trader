@@ -62,6 +62,8 @@ class CurrentDataSequence:
         self.gbp_chf_current_sequence = self.data_formatter.format_data('GBP_CHF', self.gbp_chf_current_sequence)
         self.gbp_chf_current_sequence = self.gbp_chf_current_sequence[self.gbp_chf_current_sequence.shape[0] - 60:, :]
 
+        print(candles[-1].time)
+
         return True
 
     def update_eur_usd_current_data_sequence(self, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
