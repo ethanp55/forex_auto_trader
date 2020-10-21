@@ -1,6 +1,5 @@
 from os import environ
 
-
 config_vars = {
     'host_name': environ['HOST_NAME'],
     'streaming_host_name': environ['STREAMING_HOST_NAME'],

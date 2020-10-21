@@ -6,9 +6,10 @@ from pickle import load
 
 class DataFormatter(object):
     def __init__(self):
-        self.scaler = load(open('Data/Files/rnn_scaler.pkl', 'rb'))
+        self.eur_usd_scaler = load(open('Data/Files/eur_usd_rnn_scaler.pkl', 'rb'))
+        self.gbp_chf_scaler = load(open('Data/Files/gbp_chf_rnn_scaler.pkl', 'rb'))
 
-    def format_data(self, df):
+    def format_data(self, currency_pair, df):
         # Make sure the dates are formatted properly
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
 
@@ -109,8 +110,16 @@ class DataFormatter(object):
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        df = self.scaler.transform(df)
+        scaler_to_use = self.eur_usd_scaler if currency_pair == 'EUR_USD' else self.gbp_chf_scaler
 
-        print('Last date for current sequence: ' + str(dates[-1]))
+        if scaler_to_use == self.eur_usd_scaler:
+            print('EUR USD SCALER')
+
+        else:
+            print('GBP CHF SCALER')
+
+        df = scaler_to_use.transform(df)
+
+        print('Last date for current sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df

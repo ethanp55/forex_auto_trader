@@ -7,18 +7,18 @@ A class for placing trades
 """
 class OrderHandler:
     def __init__(self, pips_to_risk):
-        self.currency_pair = 'EUR_USD'
         self.pips_to_risk = pips_to_risk
 
-    def place_market_order(self, order_type, n_units, profit_price):
+    def place_market_order(self, currency_pair, order_type, n_units, profit_price):
         # Add all of the needed arguments
         kwargs = {}
         kwargs['type'] = 'MARKET'
-        kwargs['instrument'] = self.currency_pair
+        kwargs['instrument'] = currency_pair
         kwargs['units'] = str(n_units) if order_type == 'buy' else str(-n_units)
         kwargs['timeInForce'] = 'FOK'
         kwargs['positionFill'] = 'DEFAULT'
         kwargs['takeProfitOnFill'] = {'price': str(profit_price), 'timeInForce': 'GTC'}
+        # kwargs['stopLossOnFill'] = {'distance': str(self.pips_to_risk), 'timeInForce': 'GTC'}
         kwargs['trailingStopLossOnFill'] = {'distance': str(self.pips_to_risk), 'timeInForce': 'GTC'}
 
         # Create the Oanda API context
