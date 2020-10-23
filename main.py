@@ -10,7 +10,7 @@ import traceback
 
 weekend_day_nums = [4, 5, 6]
 time_frame_granularity = 30  # Minutes
-pips_to_risk = 40 / 10000
+pips_to_risk = 50 / 10000
 n_units_per_trade = 10000
 gain_risk_ratio = 2
 current_data_sequence = CurrentDataSequence()
