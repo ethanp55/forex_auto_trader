@@ -8,8 +8,7 @@ import pytz as tz
 
 class CurrentDataSequence:
     def __init__(self):
-        self.eur_usd_current_sequence = None
-        self.gbp_chf_current_sequence = None
+        self.current_sequences = {'EUR_USD': None, 'GBP_CHF': None, 'USD_CAD': None}
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 
@@ -51,20 +50,22 @@ class CurrentDataSequence:
 
         np_data = np.array(np_data)
 
-        self.gbp_chf_current_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close'])
-        self.gbp_chf_current_sequence.dropna(inplace=True)
-        self.gbp_chf_current_sequence.reset_index(drop=True, inplace=True)
+        data_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close'])
+        data_sequence.dropna(inplace=True)
+        data_sequence.reset_index(drop=True, inplace=True)
 
-        if self.gbp_chf_current_sequence.shape[0] < 200:
-            print('Current sequence length is too small: ' + str(self.gbp_chf_current_sequence.shape[0]))
+        if data_sequence.shape[0] < 200:
+            print('Current sequence length is too small: ' + str(data_sequence.shape[0]))
             return False
 
-        self.gbp_chf_current_sequence = self.data_formatter.format_data('GBP_CHF', self.gbp_chf_current_sequence)
-        self.gbp_chf_current_sequence = self.gbp_chf_current_sequence[self.gbp_chf_current_sequence.shape[0] - 60:, :]
+        data_sequence = self.data_formatter.format_data('GBP_CHF', data_sequence)
+        data_sequence = data_sequence[data_sequence.shape[0] - 60:, :]
+
+        self.current_sequences['GBP_CHF'] = data_sequence
 
         return True
 
-    def update_eur_usd_current_data_sequence(self, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
+    def update_major_pair_current_data_sequence(self, currency_pair, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
         curr_date = datetime.now(tz=tz.timezone('America/New_York'))
         minutes = 0 if curr_date.minute < 30 else 30
         d = datetime(curr_date.year, 3, 8)
@@ -85,7 +86,7 @@ class CurrentDataSequence:
         to_time = str(current_time)
 
         data_downloader = DataDownloader()
-        candles, error_message = data_downloader.get_historical_data('EUR_USD', ['bid', 'ask'], 'M30', from_time, to_time)
+        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'M30', from_time, to_time)
 
         if error_message is not None:
             print(error_message)
@@ -113,15 +114,20 @@ class CurrentDataSequence:
 
         np_data = np.array(np_data)
 
-        self.eur_usd_current_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Nonfarm_Payroll_Actual', 'Nonfarm_Payroll_Forecast', 'Nonfarm_Payroll_Previous'])
-        self.eur_usd_current_sequence.dropna(inplace=True)
-        self.eur_usd_current_sequence.reset_index(drop=True, inplace=True)
+        data_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Nonfarm_Payroll_Actual', 'Nonfarm_Payroll_Forecast', 'Nonfarm_Payroll_Previous'])
+        data_sequence.dropna(inplace=True)
+        data_sequence.reset_index(drop=True, inplace=True)
 
-        if self.eur_usd_current_sequence.shape[0] < 200:
-            print('Current sequence length is too small: ' + str(self.eur_usd_current_sequence.shape[0]))
+        if data_sequence.shape[0] < 200:
+            print('Current sequence length is too small: ' + str(data_sequence.shape[0]))
             return False
 
-        self.eur_usd_current_sequence = self.data_formatter.format_data('EUR_USD', self.eur_usd_current_sequence)
-        self.eur_usd_current_sequence = self.eur_usd_current_sequence[self.eur_usd_current_sequence.shape[0] - 60:, :]
+        data_sequence = self.data_formatter.format_data(currency_pair, data_sequence)
+        data_sequence = data_sequence[data_sequence.shape[0] - 60:, :]
+
+        self.current_sequences[currency_pair] = data_sequence
 
         return True
+
+    def get_sequence_for_pair(self, currency_pair):
+        return self.current_sequences[currency_pair]

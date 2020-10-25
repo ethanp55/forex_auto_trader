@@ -18,8 +18,7 @@ order_handler = OrderHandler(pips_to_risk)
 data_downloader = DataDownloader()
 train_data_updater = TrainDataUpdater()
 forex_rnn = ForexRNN()
-open_eur_usd = False
-open_gbp_chf = False
+open_pairs = {'EUR_USD': False, 'GBP_CHF': False, 'USD_CAD': False}
 open_trade_instruments = set()
 
 
@@ -47,12 +46,12 @@ def _get_dt():
 def _get_open_trades(dt):
     try:
         global open_trade_instruments
-        global open_eur_usd
-        global open_gbp_chf
+        global open_pairs
 
         open_trade_instruments.clear()
-        open_eur_usd = True
-        open_gbp_chf = True
+
+        for currency_pair in open_pairs:
+            open_pairs[currency_pair] = True
 
         open_trades, error_message = order_handler.get_open_trades()
 
@@ -67,8 +66,8 @@ def _get_open_trades(dt):
         for order in open_trades:
             open_trade_instruments.add(order.instrument)
 
-        open_eur_usd = 'EUR_USD' in open_trade_instruments
-        open_gbp_chf = 'GBP_CHF' in open_trade_instruments
+        for currency_pair in open_pairs:
+            open_pairs[currency_pair] = currency_pair in open_trade_instruments
 
         return True
 
@@ -85,16 +84,16 @@ def _get_open_trades(dt):
         return False
 
 
-def _update_eur_usd_current_data_sequence(dt, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
+def _update_major_pair_current_data_sequence(dt, currency_pair, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous):
     try:
-        current_data_update_success = current_data_sequence.update_eur_usd_current_data_sequence(nfp_actual, nfp_forecast,
-                                                                                                 nfp_previous, prev_nfp_date,
-                                                                                                 prev_nfp_actual,
-                                                                                                 prev_nfp_forecast,
-                                                                                                 prev_nfp_previous)
+        current_data_update_success = current_data_sequence.update_major_pair_current_data_sequence(currency_pair, nfp_actual, nfp_forecast,
+                                                                                                    nfp_previous, prev_nfp_date,
+                                                                                                    prev_nfp_actual,
+                                                                                                    prev_nfp_forecast,
+                                                                                                    prev_nfp_previous)
 
         if not current_data_update_success:
-            print('Error updating EUR/USD data')
+            print('Error updating ' + str(currency_pair) + ' data')
 
             while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
                 time.sleep(1)
@@ -104,7 +103,7 @@ def _update_eur_usd_current_data_sequence(dt, nfp_actual, nfp_forecast, nfp_prev
         return True
 
     except Exception as e:
-        error_message = 'Error when trying to get update EUR/USD current data sequence'
+        error_message = 'Error when trying to get update ' + str(currency_pair) + ' current data sequence'
 
         print(error_message)
         print(e)
@@ -197,8 +196,8 @@ def main():
     if not open_trades_success:
         main()
 
-    print('Starting new session; session started with open EUR/USD trade: ' + str(open_eur_usd))
-    print('Starting new session; session started with open GBP/CHF trade: ' + str(open_gbp_chf))
+    for currency_pair in open_pairs:
+        print('Starting new session; session started with open ' + str(currency_pair) + ' trade: ' + str(open_pairs[currency_pair]))
 
     while True:
         dt = _get_dt()
@@ -212,87 +211,82 @@ def main():
         if not open_trades_success:
             continue
 
-        if not open_eur_usd or not open_gbp_chf:
-            data_sequences = {}
+        data_sequences = {}
 
-            if not open_eur_usd:
-                prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous = train_data_updater.get_old_nfp_data()
-                nfp_actual, nfp_forecast, nfp_previous = train_data_updater.get_new_nfp_data()
+        for currency_pair in open_pairs:
+            if not open_pairs[currency_pair]:
+                if currency_pair == 'GBP_CHF':
+                    current_data_update_success = _update_gbp_chf_current_data_sequence(dt)
 
-                current_data_update_success = _update_eur_usd_current_data_sequence(dt, nfp_actual, nfp_forecast, nfp_previous, prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous)
-
-                if not current_data_update_success:
-                    continue
-
-                eur_usd_sequence = current_data_sequence.eur_usd_current_sequence
-                data_sequences['EUR_USD'] = eur_usd_sequence
-
-            if not open_gbp_chf:
-                current_data_update_success = _update_gbp_chf_current_data_sequence(dt)
-
-                if not current_data_update_success:
-                    continue
-
-                gbp_chf_sequence = current_data_sequence.gbp_chf_current_sequence
-                data_sequences['GBP_CHF'] = gbp_chf_sequence
-
-            predictions = {}
-
-            for currency_pair in data_sequences:
-                pred = forex_rnn.predict(currency_pair, data_sequences[currency_pair])
-                predictions[currency_pair] = pred
-
-            time.sleep(1)
-
-            for currency_pair in predictions:
-                pred = predictions[currency_pair]
-
-                if pred is not None:
-                    print('\n---------------------------------')
-                    print('------- PLACING NEW ORDER -------')
-                    print('------------ ' + str(currency_pair) + ' ------------')
-                    print('---------------------------------\n')
-
-                    candles = _get_current_data(dt, currency_pair, ['bid', 'ask'], 'M30')
-
-                    if candles is None:
+                    if not current_data_update_success:
                         continue
 
-                    last_candle = candles[-1]
-                    curr_bid_open = float(last_candle.bid.o)
-                    curr_ask_open = float(last_candle.ask.o)
+                else:
+                    prev_nfp_date, prev_nfp_actual, prev_nfp_forecast, prev_nfp_previous = train_data_updater.get_old_nfp_data()
+                    nfp_actual, nfp_forecast, nfp_previous = train_data_updater.get_new_nfp_data()
 
-                    if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+                    current_data_update_success = _update_major_pair_current_data_sequence(dt, currency_pair, nfp_actual, nfp_forecast,
+                                                                                           nfp_previous, prev_nfp_date,
+                                                                                           prev_nfp_actual,
+                                                                                           prev_nfp_forecast,
+                                                                                           prev_nfp_previous)
 
-                    else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
-
-                    print('Action: ' + str(pred) + ' for ' + str(currency_pair))
-                    print('Profit price: ' + str(profit_price))
-                    print()
-
-                    order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price)
-
-                    if not order_placed:
+                    if not current_data_update_success:
                         continue
 
-            # Give Oanda a few seconds to process the trades
-            time.sleep(15)
+                data_sequences[currency_pair] = current_data_sequence.get_sequence_for_pair(currency_pair)
 
-            open_trades_success = _get_open_trades(dt)
+        predictions = {}
 
-            if not open_trades_success:
-                continue
+        for currency_pair in data_sequences:
+            pred = forex_rnn.predict(currency_pair, data_sequences[currency_pair])
+            predictions[currency_pair] = pred
 
-            if open_eur_usd:
-                print('EUR/USD order in place')
+        time.sleep(1)
 
-            if open_gbp_chf:
-                print('GBP/CHF order in place')
+        for currency_pair in predictions:
+            pred = predictions[currency_pair]
 
-        else:
-            print('There are currently 2 open trades (one for each pair)\n')
+            if pred is not None:
+                print('\n---------------------------------')
+                print('------- PLACING NEW ORDER -------')
+                print('------------ ' + str(currency_pair) + ' ------------')
+                print('---------------------------------\n')
+
+                candles = _get_current_data(dt, currency_pair, ['bid', 'ask'], 'M30')
+
+                if candles is None:
+                    continue
+
+                last_candle = candles[-1]
+                curr_bid_open = float(last_candle.bid.o)
+                curr_ask_open = float(last_candle.ask.o)
+
+                if pred == 'buy':
+                    profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+
+                else:
+                    profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
+
+                print('Action: ' + str(pred) + ' for ' + str(currency_pair))
+                print('Profit price: ' + str(profit_price))
+                print()
+
+                order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price)
+
+                if not order_placed:
+                    continue
+
+        # Give Oanda a few seconds to process the trades
+        time.sleep(15)
+
+        open_trades_success = _get_open_trades(dt)
+
+        if not open_trades_success:
+            continue
+
+        for currency_pair in open_pairs:
+            print('Open trade for ' + str(currency_pair) + ': ' + str(open_pairs[currency_pair]))
 
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)

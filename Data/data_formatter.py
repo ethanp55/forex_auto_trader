@@ -6,8 +6,10 @@ from pickle import load
 
 class DataFormatter(object):
     def __init__(self):
-        self.eur_usd_scaler = load(open('Data/Files/eur_usd_rnn_scaler.pkl', 'rb'))
-        self.gbp_chf_scaler = load(open('Data/Files/gbp_chf_rnn_scaler.pkl', 'rb'))
+        eur_usd_scaler = load(open('Data/Files/eur_usd_rnn_scaler.pkl', 'rb'))
+        gbp_chf_scaler = load(open('Data/Files/gbp_chf_rnn_scaler.pkl', 'rb'))
+        usd_cad_scaler = load(open('Data/Files/usd_cad_rnn_scaler.pkl', 'rb'))
+        self.scalers = {'EUR_USD': eur_usd_scaler, 'GBP_CHF': gbp_chf_scaler, 'USD_CAD': usd_cad_scaler}
 
     def format_data(self, currency_pair, df):
         # Make sure the dates are formatted properly
@@ -110,13 +112,7 @@ class DataFormatter(object):
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        scaler_to_use = self.eur_usd_scaler if currency_pair == 'EUR_USD' else self.gbp_chf_scaler
-
-        if scaler_to_use == self.eur_usd_scaler:
-            print('EUR USD SCALER')
-
-        else:
-            print('GBP CHF SCALER')
+        scaler_to_use = self.scalers[currency_pair]
 
         df = scaler_to_use.transform(df)
 
