@@ -18,7 +18,7 @@ order_handler = OrderHandler(pips_to_risk)
 data_downloader = DataDownloader()
 train_data_updater = TrainDataUpdater()
 forex_rnn = ForexRNN()
-open_pairs = {'EUR_USD': False, 'GBP_CHF': False, 'USD_CAD': False}
+open_pairs = {'EUR_USD': False, 'GBP_CHF': False, 'USD_CAD': False, 'AUD_USD': False}
 open_trade_instruments = set()
 
 

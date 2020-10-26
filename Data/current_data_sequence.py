@@ -8,7 +8,7 @@ import pytz as tz
 
 class CurrentDataSequence:
     def __init__(self):
-        self.current_sequences = {'EUR_USD': None, 'GBP_CHF': None, 'USD_CAD': None}
+        self.current_sequences = {'EUR_USD': None, 'GBP_CHF': None, 'USD_CAD': None, 'AUD_USD': None}
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 

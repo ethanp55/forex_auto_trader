@@ -9,7 +9,8 @@ class DataFormatter(object):
         eur_usd_scaler = load(open('Data/Files/eur_usd_rnn_scaler.pkl', 'rb'))
         gbp_chf_scaler = load(open('Data/Files/gbp_chf_rnn_scaler.pkl', 'rb'))
         usd_cad_scaler = load(open('Data/Files/usd_cad_rnn_scaler.pkl', 'rb'))
-        self.scalers = {'EUR_USD': eur_usd_scaler, 'GBP_CHF': gbp_chf_scaler, 'USD_CAD': usd_cad_scaler}
+        aud_usd_scaler = load(open('Data/Files/aud_usd_rnn_scaler.pkl', 'rb'))
+        self.scalers = {'EUR_USD': eur_usd_scaler, 'GBP_CHF': gbp_chf_scaler, 'USD_CAD': usd_cad_scaler, 'AUD_USD': aud_usd_scaler}
 
     def format_data(self, currency_pair, df):
         # Make sure the dates are formatted properly
