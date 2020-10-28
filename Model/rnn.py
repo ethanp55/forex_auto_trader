@@ -8,7 +8,8 @@ class ForexRNN:
         gbp_chf_rnn = load_model('Model/Files/gbp_chf_rnn.h5')
         usd_cad_rnn = load_model('Model/Files/usd_cad_rnn.h5')
         aud_usd_rnn = load_model('Model/Files/aud_usd_rnn.h5')
-        self.rnns = {'EUR_USD': eur_usd_rnn, 'GBP_CHF': gbp_chf_rnn, 'USD_CAD': usd_cad_rnn, 'AUD_USD': aud_usd_rnn}
+        nzd_usd_rnn = load_model('Model/Files/nzd_usd_rnn.h5')
+        self.rnns = {'EUR_USD': eur_usd_rnn, 'GBP_CHF': gbp_chf_rnn, 'USD_CAD': usd_cad_rnn, 'AUD_USD': aud_usd_rnn, 'NZD_USD': nzd_usd_rnn}
         self.proba_threshold = proba_threshold
 
     def predict(self, currency_pair, input_vector):
