@@ -12,7 +12,8 @@ class MACDCrossover(object):
         print('Prev MACD signal: ' + str(prev_macdsignal))
         print('Curr MACD: ' + str(curr_macd))
         print('Curr MACD signal: ' + str(curr_macdsignal))
-        print('Curr bid open: ' + str(curr_bid_open))
+        print('Curr bid low: ' + str(curr_bid_low))
+        print('Curr bid high: ' + str(curr_bid_high))
         print('Curr EMA 200: ' + str(curr_ema200))
         print()
 
