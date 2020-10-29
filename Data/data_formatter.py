@@ -121,3 +121,19 @@ class DataFormatter(object):
         print('Last date for current sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
+
+    def format_macd_data(self, currency_pair, df):
+        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+
+        df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
+        df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
+
+        dates = df['Date']
+        df.drop('Date', axis=1, inplace=True)
+
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        print('Last date for current macd sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+
+        return df

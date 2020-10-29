@@ -5,11 +5,10 @@ from Oanda.Config.config import Config
 """
 A class for placing trades
 """
-class OrderHandler:
-    def __init__(self, pips_to_risk):
-        self.pips_to_risk = pips_to_risk
+class OrderHandler(object):
 
-    def place_market_order(self, currency_pair, order_type, n_units, profit_price):
+    @staticmethod
+    def place_market_order(currency_pair, order_type, n_units, profit_price, pips_to_risk):
         # Add all of the needed arguments
         kwargs = {}
         kwargs['type'] = 'MARKET'
@@ -19,7 +18,7 @@ class OrderHandler:
         kwargs['positionFill'] = 'DEFAULT'
         kwargs['takeProfitOnFill'] = {'price': str(profit_price), 'timeInForce': 'GTC'}
         # kwargs['stopLossOnFill'] = {'distance': str(self.pips_to_risk), 'timeInForce': 'GTC'}
-        kwargs['trailingStopLossOnFill'] = {'distance': str(self.pips_to_risk), 'timeInForce': 'GTC'}
+        kwargs['trailingStopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
 
         # Create the Oanda API context
         api_context = v20.Context(
@@ -36,7 +35,8 @@ class OrderHandler:
 
         print("Response: {} ({})\n".format(response.status, response.reason))
 
-    def get_open_trades(self):
+    @staticmethod
+    def get_open_trades():
         api_context = v20.Context(
             Config.get_host_name(),
             Config.get_port(),

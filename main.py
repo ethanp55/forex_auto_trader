@@ -6,19 +6,23 @@ from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
 from Data.train_data_updater import TrainDataUpdater
 from Model.rnn import ForexRNN
+from Model.macd_crossover import MACDCrossover
 import traceback
 
 weekend_day_nums = [4, 5, 6]
 time_frame_granularity = 30  # Minutes
-pips_to_risk = 50 / 10000
+rnn_pips_to_risk = {'EUR_USD': 50 / 10000}
+rnn_gain_risk_ratio = {'EUR_USD': 2}
+macd_pips_to_risk = {'EUR_USD': 30 / 10000, 'GBP_USD': 45 / 10000}
+macd_gain_risk_ratio = {'EUR_USD': 1.5, 'GBP_USD': 2}
 n_units_per_trade = 10000
-gain_risk_ratio = 2
 current_data_sequence = CurrentDataSequence()
-order_handler = OrderHandler(pips_to_risk)
 data_downloader = DataDownloader()
 train_data_updater = TrainDataUpdater()
 forex_rnn = ForexRNN()
-open_pairs = {'EUR_USD': True, 'GBP_CHF': True, 'USD_CAD': True, 'AUD_USD': True, 'NZD_USD': True}
+# open_rnn_pairs = {'EUR_USD': True, 'GBP_CHF': True, 'USD_CAD': True, 'AUD_USD': True, 'NZD_USD': True}
+open_rnn_pairs = {}
+open_macd_pairs = {'EUR_USD': True, 'GBP_USD': True}
 open_trade_instruments = set()
 
 
@@ -46,14 +50,18 @@ def _get_dt():
 def _get_open_trades(dt):
     try:
         global open_trade_instruments
-        global open_pairs
+        global open_rnn_pairs
+        global open_macd_pairs
 
         open_trade_instruments.clear()
 
-        for currency_pair in open_pairs:
-            open_pairs[currency_pair] = True
+        for currency_pair in open_rnn_pairs:
+            open_rnn_pairs[currency_pair] = True
 
-        open_trades, error_message = order_handler.get_open_trades()
+        for currency_pair in open_macd_pairs:
+            open_macd_pairs[currency_pair] = True
+
+        open_trades, error_message = OrderHandler.get_open_trades()
 
         if error_message is not None:
             print(error_message)
@@ -66,8 +74,11 @@ def _get_open_trades(dt):
         for order in open_trades:
             open_trade_instruments.add(order.instrument)
 
-        for currency_pair in open_pairs:
-            open_pairs[currency_pair] = currency_pair in open_trade_instruments
+        for currency_pair in open_rnn_pairs:
+            open_rnn_pairs[currency_pair] = currency_pair in open_trade_instruments
+
+        for currency_pair in open_macd_pairs:
+            open_macd_pairs[currency_pair] = currency_pair in open_trade_instruments
 
         return True
 
@@ -142,6 +153,33 @@ def _update_gbp_chf_current_data_sequence(dt):
         return False
 
 
+def _update_macd_crossover_current_data_sequence(dt, currency_pair):
+    try:
+        current_data_update_success = current_data_sequence.update_macd_crossover_current_data_sequence(currency_pair)
+
+        if not current_data_update_success:
+            print('Error updating macd crossover data for ' + str(currency_pair))
+
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
+                time.sleep(1)
+
+            return False
+
+        return True
+
+    except Exception as e:
+        error_message = 'Error when trying to get update GBP/CHF current data sequence'
+
+        print(error_message)
+        print(e)
+        print(traceback.print_exc())
+
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
+            time.sleep(1)
+
+        return False
+
+
 def _get_current_data(dt, currency_pair, candle_types, time_granularity):
     try:
         candles, error_message = data_downloader.get_current_data(currency_pair, candle_types, time_granularity)
@@ -169,9 +207,9 @@ def _get_current_data(dt, currency_pair, candle_types, time_granularity):
         return None
 
 
-def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price):
+def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk):
     try:
-        order_handler.place_market_order(currency_pair, pred, n_units_per_trade, profit_price)
+        OrderHandler.place_market_order(currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk)
 
         return True
 
@@ -196,8 +234,11 @@ def main():
     if not open_trades_success:
         main()
 
-    for currency_pair in open_pairs:
-        print('Starting new session; session started with open ' + str(currency_pair) + ' trade: ' + str(open_pairs[currency_pair]))
+    for currency_pair in open_rnn_pairs:
+        print('Starting new session; session started with open ' + str(currency_pair) + ' rnn trade: ' + str(open_rnn_pairs[currency_pair]))
+
+    for currency_pair in open_macd_pairs:
+        print('Starting new session; session started with open ' + str(currency_pair) + ' macd trade: ' + str(open_macd_pairs[currency_pair]))
 
     while True:
         dt = _get_dt()
@@ -211,10 +252,76 @@ def main():
         if not open_trades_success:
             continue
 
+        # --------------------------------------------------------------------------------------------------------------
+        # ------------------------------------------------------ MACD --------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        time.sleep(1)
+
         data_sequences = {}
 
-        for currency_pair in open_pairs:
-            if not open_pairs[currency_pair]:
+        for currency_pair in open_macd_pairs:
+            if not open_macd_pairs[currency_pair]:
+                current_data_update_success = _update_macd_crossover_current_data_sequence(dt, currency_pair)
+
+                if not current_data_update_success:
+                    continue
+
+                data_sequences[currency_pair] = current_data_sequence.get_macd_sequence_for_pair(currency_pair)
+
+        predictions = {}
+
+        for currency_pair in data_sequences:
+            pred = MACDCrossover.predict(currency_pair, data_sequences[currency_pair])
+            predictions[currency_pair] = pred
+
+        for currency_pair in predictions:
+            pred = predictions[currency_pair]
+
+            if pred is not None:
+                print('\n----------------------------------')
+                print('---- PLACING NEW ORDER (MACD) ----')
+                print('------------ ' + str(currency_pair) + ' -------------')
+                print('----------------------------------\n')
+
+                candles = _get_current_data(dt, currency_pair, ['bid', 'ask'], 'M30')
+
+                if candles is None:
+                    continue
+
+                last_candle = candles[-1]
+                curr_bid_open = float(last_candle.bid.o)
+                curr_ask_open = float(last_candle.ask.o)
+                gain_risk_ratio = macd_gain_risk_ratio[currency_pair]
+                pips_to_risk = macd_pips_to_risk[currency_pair]
+
+                if pred == 'buy':
+                    profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+
+                else:
+                    profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
+
+                print('Action: ' + str(pred) + ' for ' + str(currency_pair))
+                print('Profit price: ' + str(profit_price))
+                print()
+
+                order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk)
+
+                if not order_placed:
+                    continue
+
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        # --------------------------------------------------------------------------------------------------------------
+        # ---------------------------------------------------- RNN -----------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        data_sequences = {}
+
+        for currency_pair in open_rnn_pairs:
+            if not open_rnn_pairs[currency_pair]:
                 if currency_pair == 'GBP_CHF':
                     current_data_update_success = _update_gbp_chf_current_data_sequence(dt)
 
@@ -242,14 +349,12 @@ def main():
             pred = forex_rnn.predict(currency_pair, data_sequences[currency_pair])
             predictions[currency_pair] = pred
 
-        time.sleep(1)
-
         for currency_pair in predictions:
             pred = predictions[currency_pair]
 
             if pred is not None:
                 print('\n---------------------------------')
-                print('------- PLACING NEW ORDER -------')
+                print('---- PLACING NEW ORDER (RNN) ----')
                 print('------------ ' + str(currency_pair) + ' ------------')
                 print('---------------------------------\n')
 
@@ -261,6 +366,8 @@ def main():
                 last_candle = candles[-1]
                 curr_bid_open = float(last_candle.bid.o)
                 curr_ask_open = float(last_candle.ask.o)
+                gain_risk_ratio = rnn_gain_risk_ratio[currency_pair]
+                pips_to_risk = rnn_pips_to_risk[currency_pair]
 
                 if pred == 'buy':
                     profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
@@ -272,10 +379,14 @@ def main():
                 print('Profit price: ' + str(profit_price))
                 print()
 
-                order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price)
+                order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk)
 
                 if not order_placed:
                     continue
+
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
 
         # Give Oanda a few seconds to process the trades
         time.sleep(15)
@@ -285,8 +396,11 @@ def main():
         if not open_trades_success:
             continue
 
-        for currency_pair in open_pairs:
-            print('Open trade for ' + str(currency_pair) + ': ' + str(open_pairs[currency_pair]))
+        for currency_pair in open_rnn_pairs:
+            print('Open rnn trade for ' + str(currency_pair) + ': ' + str(open_rnn_pairs[currency_pair]))
+
+        for currency_pair in open_macd_pairs:
+            print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_macd_pairs[currency_pair]))
 
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
