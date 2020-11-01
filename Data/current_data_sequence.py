@@ -21,11 +21,13 @@ class CurrentDataSequence:
         d = datetime(curr_date.year, 11, 1)
         dstoff = d + timedelta(days=6 - d.weekday())
 
-        if dston <= curr_date.replace(tzinfo=None) < dstoff:
-            hours = 2
+        # if dston <= curr_date.replace(tzinfo=None) < dstoff:
+        #     hours = 2
+        #
+        # else:
+        #     hours = 1
 
-        else:
-            hours = 1
+        hours = 2
 
         current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=minutes) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
@@ -74,11 +76,13 @@ class CurrentDataSequence:
         d = datetime(curr_date.year, 11, 1)
         dstoff = d + timedelta(days=6 - d.weekday())
 
-        if dston <= curr_date.replace(tzinfo=None) < dstoff:
-            hours = 2
+        # if dston <= curr_date.replace(tzinfo=None) < dstoff:
+        #     hours = 2
+        #
+        # else:
+        #     hours = 1
 
-        else:
-            hours = 1
+        hours = 2
 
         current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=minutes) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
@@ -138,11 +142,13 @@ class CurrentDataSequence:
         d = datetime(curr_date.year, 11, 1)
         dstoff = d + timedelta(days=6 - d.weekday())
 
-        if dston <= curr_date.replace(tzinfo=None) < dstoff:
-            hours = 2
+        # if dston <= curr_date.replace(tzinfo=None) < dstoff:
+        #     hours = 2
+        #
+        # else:
+        #     hours = 1
 
-        else:
-            hours = 1
+        hours = 2
 
         current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=minutes) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
