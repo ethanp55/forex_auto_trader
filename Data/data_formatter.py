@@ -134,6 +134,7 @@ class DataFormatter(object):
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
+        print('Second to last date for current macd sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
         print('Last date for current macd sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
