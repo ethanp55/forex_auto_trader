@@ -168,7 +168,7 @@ def _update_macd_crossover_current_data_sequence(dt, currency_pair):
         return True
 
     except Exception as e:
-        error_message = 'Error when trying to get update GBP/CHF current data sequence'
+        error_message = 'Error when trying to get update ' + str(currency_pair) + ' current data sequence'
 
         print(error_message)
         print(e)
