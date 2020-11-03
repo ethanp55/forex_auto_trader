@@ -172,20 +172,30 @@ class CurrentDataSequence:
             row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c)]
             np_data.append(row)
 
-        candles, error_message = data_downloader.get_current_data(currency_pair, ['bid', 'ask'], 'M30')
+        utc_now = datetime.utcnow().replace(microsecond=0, second=0, minute=minutes)
+        utc_now = utc_now.strftime('%Y-%m-%d %H:%M:%S')
+        utc_now = datetime.strptime(utc_now, '%Y-%m-%d %H:%M:%S')
 
-        if error_message is not None:
-            print(error_message)
-            return False
+        while True:
+            candles, error_message = data_downloader.get_current_data('EUR_USD', ['bid', 'ask'], 'M30')
 
-        curr_candle = candles[-1]
+            if error_message is not None:
+                print(error_message)
+                return False
 
-        curr_date = curr_candle.time
-        curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
+            curr_candle = candles[-1]
+            curr_date = curr_candle.time
+            curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
+            curr_date_datetime = datetime.strptime(curr_date, '%Y-%m-%d %H:%M:%S')
 
-        row = [curr_date, float(curr_candle.bid.o), float(curr_candle.bid.h), float(curr_candle.bid.l), float(curr_candle.bid.c),
-               float(curr_candle.ask.o), float(curr_candle.ask.h), float(curr_candle.ask.l), float(curr_candle.ask.c)]
-        np_data.append(row)
+            if curr_date_datetime >= utc_now:
+                row = [curr_date, float(curr_candle.bid.o), float(curr_candle.bid.h), float(curr_candle.bid.l),
+                       float(curr_candle.bid.c),
+                       float(curr_candle.ask.o), float(curr_candle.ask.h), float(curr_candle.ask.l),
+                       float(curr_candle.ask.c)]
+                np_data.append(row)
+
+                break
 
         np_data = np.array(np_data)
 
