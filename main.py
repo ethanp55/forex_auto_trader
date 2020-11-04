@@ -501,6 +501,9 @@ def main():
         for currency_pair in open_macd_pairs:
             print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_macd_pairs[currency_pair]))
 
+        for currency_pair in open_kiss_pairs:
+            print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_kiss_pairs[currency_pair]))
+
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)
 
