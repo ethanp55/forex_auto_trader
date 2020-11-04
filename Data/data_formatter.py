@@ -138,3 +138,22 @@ class DataFormatter(object):
         print('Last date for current macd sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
+
+    def format_kiss_data(self, currency_pair, df):
+        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+
+        df['ma5'] = talib.EMA(df['Bid_Close'], timeperiod=5)
+        df['ma10'] = talib.EMA(df['Bid_Close'], timeperiod=10)
+        df['slowk'], df['slowd'] = talib.STOCH(df['Bid_High'], df['Bid_Low'], df['Bid_Close'])
+        df['rsi'] = talib.RSI(df['Bid_Close'], timeperiod=9)
+
+        dates = df['Date']
+        df.drop('Date', axis=1, inplace=True)
+
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        print('Second to last date for current kiss sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
+        print('Last date for current kiss sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+
+        return df

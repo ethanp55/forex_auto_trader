@@ -7,6 +7,7 @@ from Oanda.Services.data_downloader import DataDownloader
 from Data.train_data_updater import TrainDataUpdater
 from Model.rnn import ForexRNN
 from Model.macd_crossover import MACDCrossover
+from Model.kiss import KISS
 import traceback
 
 weekend_day_nums = [4, 5, 6]
@@ -15,6 +16,8 @@ rnn_pips_to_risk = {'EUR_USD': 50 / 10000}
 rnn_gain_risk_ratio = {'EUR_USD': 2}
 macd_pips_to_risk = {'EUR_USD': 20 / 10000, 'GBP_USD': 30 / 10000}
 macd_gain_risk_ratio = {'EUR_USD': 2.25, 'GBP_USD': 2.75}
+kiss_pips_to_risk = {'AUD_USD': 20 / 10000}
+kiss_gain_risk_ratio = {'AUD_USD': 2.75}
 n_units_per_trade = 10000
 current_data_sequence = CurrentDataSequence()
 data_downloader = DataDownloader()
@@ -23,6 +26,7 @@ forex_rnn = ForexRNN()
 # open_rnn_pairs = {'EUR_USD': True, 'GBP_CHF': True, 'USD_CAD': True, 'AUD_USD': True, 'NZD_USD': True}
 open_rnn_pairs = {}
 open_macd_pairs = {'EUR_USD': True, 'GBP_USD': True}
+open_kiss_pairs = {'AUD_USD': True}
 open_trade_instruments = set()
 
 
@@ -52,6 +56,7 @@ def _get_open_trades(dt):
         global open_trade_instruments
         global open_rnn_pairs
         global open_macd_pairs
+        global open_kiss_pairs
 
         open_trade_instruments.clear()
 
@@ -60,6 +65,9 @@ def _get_open_trades(dt):
 
         for currency_pair in open_macd_pairs:
             open_macd_pairs[currency_pair] = True
+
+        for currency_pair in open_kiss_pairs:
+            open_kiss_pairs[currency_pair] = True
 
         open_trades, error_message = OrderHandler.get_open_trades()
 
@@ -79,6 +87,9 @@ def _get_open_trades(dt):
 
         for currency_pair in open_macd_pairs:
             open_macd_pairs[currency_pair] = currency_pair in open_trade_instruments
+
+        for currency_pair in open_kiss_pairs:
+            open_kiss_pairs[currency_pair] = currency_pair in open_trade_instruments
 
         return True
 
@@ -168,7 +179,34 @@ def _update_macd_crossover_current_data_sequence(dt, currency_pair):
         return True
 
     except Exception as e:
-        error_message = 'Error when trying to get update ' + str(currency_pair) + ' current data sequence'
+        error_message = 'Error when trying to get update ' + str(currency_pair) + ' macd crossover current data sequence'
+
+        print(error_message)
+        print(e)
+        print(traceback.print_exc())
+
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
+            time.sleep(1)
+
+        return False
+
+
+def _update_kiss_current_data_sequence(dt, currency_pair):
+    try:
+        current_data_update_success = current_data_sequence.update_kiss_current_data_sequence(currency_pair)
+
+        if not current_data_update_success:
+            print('Error updating kiss data for ' + str(currency_pair))
+
+            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
+                time.sleep(1)
+
+            return False
+
+        return True
+
+    except Exception as e:
+        error_message = 'Error when trying to get update ' + str(currency_pair) + ' kiss current data sequence'
 
         print(error_message)
         print(e)
@@ -240,6 +278,9 @@ def main():
     for currency_pair in open_macd_pairs:
         print('Starting new session; session started with open ' + str(currency_pair) + ' macd trade: ' + str(open_macd_pairs[currency_pair]))
 
+    for currency_pair in open_kiss_pairs:
+        print('Starting new session; session started with open ' + str(currency_pair) + ' kiss trade: ' + str(open_kiss_pairs[currency_pair]))
+
     while True:
         dt = _get_dt()
         print('\n---------------------------------------------------------------------------------')
@@ -292,6 +333,66 @@ def main():
                 curr_ask_open = float(last_candle.ask.o)
                 gain_risk_ratio = macd_gain_risk_ratio[currency_pair]
                 pips_to_risk = macd_pips_to_risk[currency_pair]
+
+                if pred == 'buy':
+                    profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+
+                else:
+                    profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
+
+                print('Action: ' + str(pred) + ' for ' + str(currency_pair))
+                print('Profit price: ' + str(profit_price))
+                print()
+
+                order_placed = _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk)
+
+                if not order_placed:
+                    continue
+
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        # --------------------------------------------------------------------------------------------------------------
+        # ------------------------------------------------------ KISS --------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        data_sequences = {}
+
+        for currency_pair in open_kiss_pairs:
+            if not open_kiss_pairs[currency_pair]:
+                current_data_update_success = _update_kiss_current_data_sequence(dt, currency_pair)
+
+                if not current_data_update_success:
+                    continue
+
+                data_sequences[currency_pair] = current_data_sequence.get_kiss_sequence_for_pair(currency_pair)
+
+        predictions = {}
+
+        for currency_pair in data_sequences:
+            pred = KISS.predict(currency_pair, data_sequences[currency_pair])
+            predictions[currency_pair] = pred
+
+        for currency_pair in predictions:
+            pred = predictions[currency_pair]
+
+            if pred is not None:
+                print('\n----------------------------------')
+                print('---- PLACING NEW ORDER (KISS) ----')
+                print('------------ ' + str(currency_pair) + ' -------------')
+                print('----------------------------------\n')
+
+                candles = _get_current_data(dt, currency_pair, ['bid', 'ask'], 'M30')
+
+                if candles is None:
+                    continue
+
+                last_candle = candles[-1]
+                curr_bid_open = float(last_candle.bid.o)
+                curr_ask_open = float(last_candle.ask.o)
+                gain_risk_ratio = kiss_gain_risk_ratio[currency_pair]
+                pips_to_risk = kiss_pips_to_risk[currency_pair]
 
                 if pred == 'buy':
                     profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
