@@ -25,7 +25,7 @@ train_data_updater = TrainDataUpdater()
 forex_rnn = ForexRNN()
 # open_rnn_pairs = {'EUR_USD': True, 'GBP_CHF': True, 'USD_CAD': True, 'AUD_USD': True, 'NZD_USD': True}
 open_rnn_pairs = {}
-open_macd_pairs = {'EUR_USD': True, 'GBP_USD': True}
+open_macd_pairs = {'GBP_USD': True}
 open_kiss_pairs = {'AUD_USD': True}
 open_trade_instruments = set()
 
@@ -502,7 +502,7 @@ def main():
             print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_macd_pairs[currency_pair]))
 
         for currency_pair in open_kiss_pairs:
-            print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_kiss_pairs[currency_pair]))
+            print('Open kiss trade for ' + str(currency_pair) + ': ' + str(open_kiss_pairs[currency_pair]))
 
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
             time.sleep(1)

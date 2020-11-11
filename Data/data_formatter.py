@@ -157,3 +157,20 @@ class DataFormatter(object):
         print('Last date for current kiss sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
+
+    def format_beep_boop_data(self, currency_pair, df):
+        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+
+        df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
+        df['ema'] = talib.EMA(df['Bid_Close'], timeperiod=200)
+
+        dates = df['Date']
+        df.drop('Date', axis=1, inplace=True)
+
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
+        print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+
+        return df
