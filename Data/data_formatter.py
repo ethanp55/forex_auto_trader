@@ -162,7 +162,7 @@ class DataFormatter(object):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
-        df['ema'] = talib.EMA(df['Bid_Close'], timeperiod=200)
+        df['ema'] = talib.EMA(df['Bid_Close'], timeperiod=50)
 
         dates = df['Date']
         df.drop('Date', axis=1, inplace=True)
