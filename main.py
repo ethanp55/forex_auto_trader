@@ -45,7 +45,7 @@ def _get_dt():
                     break
 
     dt_m30 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
-    dt_h4 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=0, second=0) + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    dt_h4 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
     return dt_m30, dt_h4
 
@@ -234,7 +234,11 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 
 def main():
     update_h4 = False
+    error_flag = False
     dt_m30, dt_h4 = _get_dt()
+
+    if dt_h4.minute > 0:
+        dt_h4 = dt_h4.replace(minute=0)
 
     open_trades_success = _get_open_trades(dt_m30)
 
@@ -253,9 +257,11 @@ def main():
     while True:
         dt_m30, dt_h4_tmp = _get_dt()
 
-        if update_h4:
-            dt_h4 = dt_h4_tmp
+        if update_h4 or (error_flag and dt_h4_tmp > dt_h4 + timedelta(hours=4)):
+            dt_h4 = dt_h4 + timedelta(hours=4)
             update_h4 = False
+
+        error_flag = False
 
         print('\n---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')
@@ -266,7 +272,82 @@ def main():
         open_trades_success = _get_open_trades(dt_m30)
 
         if not open_trades_success:
+            error_flag = True
             continue
+
+        # --------------------------------------------------------------------------------------------------------------
+        # ------------------------------------------------- BEEP BOOP --------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+
+        if datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') >= dt_h4:
+            update_h4 = True
+
+            data_sequences = {}
+
+            for currency_pair in open_beep_boop_pairs:
+                if not open_beep_boop_pairs[currency_pair]:
+                    current_data_update_success = _update_beep_boop_current_data_sequence(dt_m30, currency_pair)
+
+                    if not current_data_update_success:
+                        error_flag = True
+                        break
+
+                    data_sequences[currency_pair] = current_data_sequence.get_beep_boop_sequence_for_pair(currency_pair)
+
+            if error_flag:
+                continue
+
+            predictions = {}
+
+            for currency_pair in data_sequences:
+                pred = BeepBoop.predict(currency_pair, data_sequences[currency_pair])
+                predictions[currency_pair] = pred
+
+            for currency_pair in predictions:
+                pred = predictions[currency_pair]
+
+                if pred is not None:
+                    print('\n----------------------------------')
+                    print('-- PLACING NEW ORDER (BEEP BOOP) --')
+                    print('------------ ' + str(currency_pair) + ' -------------')
+                    print('----------------------------------\n')
+
+                    candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'H4')
+
+                    if candles is None:
+                        error_flag = True
+                        break
+
+                    last_candle = candles[-1]
+                    curr_bid_open = float(last_candle.bid.o)
+                    curr_ask_open = float(last_candle.ask.o)
+                    gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
+                    pips_to_risk = beep_boop_pips_to_risk[currency_pair]
+                    n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
+
+                    if pred == 'buy':
+                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+
+                    else:
+                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
+
+                    print('Action: ' + str(pred) + ' for ' + str(currency_pair))
+                    print('Profit price: ' + str(profit_price))
+                    print()
+
+                    order_placed = _place_market_order(dt_m30, currency_pair, pred, n_units_per_trade, profit_price,
+                                                       pips_to_risk)
+
+                    if not order_placed:
+                        error_flag = True
+                        break
+
+            if error_flag:
+                continue
+
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
 
         # --------------------------------------------------------------------------------------------------------------
         # ------------------------------------------------------ MACD --------------------------------------------------
@@ -279,9 +360,13 @@ def main():
                 current_data_update_success = _update_macd_crossover_current_data_sequence(dt_m30, currency_pair)
 
                 if not current_data_update_success:
-                    continue
+                    error_flag = True
+                    break
 
                 data_sequences[currency_pair] = current_data_sequence.get_macd_sequence_for_pair(currency_pair)
+
+        if error_flag:
+            continue
 
         predictions = {}
 
@@ -301,7 +386,8 @@ def main():
                 candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'M30')
 
                 if candles is None:
-                    continue
+                    error_flag = True
+                    break
 
                 last_candle = candles[-1]
                 curr_bid_open = float(last_candle.bid.o)
@@ -324,7 +410,11 @@ def main():
                                                    pips_to_risk)
 
                 if not order_placed:
-                    continue
+                    error_flag = True
+                    break
+
+        if error_flag:
+            continue
 
         # --------------------------------------------------------------------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
@@ -341,9 +431,13 @@ def main():
                 current_data_update_success = _update_kiss_current_data_sequence(dt_m30, currency_pair)
 
                 if not current_data_update_success:
-                    continue
+                    error_flag = True
+                    break
 
                 data_sequences[currency_pair] = current_data_sequence.get_kiss_sequence_for_pair(currency_pair)
+
+        if error_flag:
+            continue
 
         predictions = {}
 
@@ -363,7 +457,8 @@ def main():
                 candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'M30')
 
                 if candles is None:
-                    continue
+                    error_flag = True
+                    break
 
                 last_candle = candles[-1]
                 curr_bid_open = float(last_candle.bid.o)
@@ -386,71 +481,11 @@ def main():
                                                    pips_to_risk)
 
                 if not order_placed:
-                    continue
+                    error_flag = True
+                    break
 
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        # --------------------------------------------------------------------------------------------------------------
-        # ------------------------------------------------- BEEP BOOP --------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        if datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') >= dt_h4:
-            update_h4 = True
-
-            data_sequences = {}
-
-            for currency_pair in open_beep_boop_pairs:
-                if not open_beep_boop_pairs[currency_pair]:
-                    current_data_update_success = _update_beep_boop_current_data_sequence(dt_m30, currency_pair)
-
-                    if not current_data_update_success:
-                        continue
-
-                    data_sequences[currency_pair] = current_data_sequence.get_beep_boop_sequence_for_pair(currency_pair)
-
-            predictions = {}
-
-            for currency_pair in data_sequences:
-                pred = BeepBoop.predict(currency_pair, data_sequences[currency_pair])
-                predictions[currency_pair] = pred
-
-            for currency_pair in predictions:
-                pred = predictions[currency_pair]
-
-                if pred is not None:
-                    print('\n----------------------------------')
-                    print('---- PLACING NEW ORDER (MACD) ----')
-                    print('------------ ' + str(currency_pair) + ' -------------')
-                    print('----------------------------------\n')
-
-                    candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'M30')
-
-                    if candles is None:
-                        continue
-
-                    last_candle = candles[-1]
-                    curr_bid_open = float(last_candle.bid.o)
-                    curr_ask_open = float(last_candle.ask.o)
-                    gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
-                    pips_to_risk = beep_boop_pips_to_risk[currency_pair]
-                    n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
-
-                    if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
-
-                    else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
-
-                    print('Action: ' + str(pred) + ' for ' + str(currency_pair))
-                    print('Profit price: ' + str(profit_price))
-                    print()
-
-                    order_placed = _place_market_order(dt_m30, currency_pair, pred, n_units_per_trade, profit_price, pips_to_risk)
-
-                    if not order_placed:
-                        continue
+        if error_flag:
+            continue
 
         # --------------------------------------------------------------------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
@@ -463,6 +498,12 @@ def main():
 
         if not open_trades_success:
             continue
+
+        for currency_pair in open_macd_pairs:
+            print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_macd_pairs[currency_pair]))
+
+        for currency_pair in open_kiss_pairs:
+            print('Open kiss trade for ' + str(currency_pair) + ': ' + str(open_kiss_pairs[currency_pair]))
 
         for currency_pair in open_beep_boop_pairs:
             print('Open beep boop trade for ' + str(currency_pair) + ': ' + str(open_beep_boop_pairs[currency_pair]))

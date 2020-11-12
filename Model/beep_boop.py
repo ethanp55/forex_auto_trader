@@ -25,7 +25,7 @@ class BeepBoop(object):
         else:
             trade = None
 
-        print(trade)
+        print('Beep boop trade: ' + str(trade))
         print('-------------------------------------------------------')
 
         return trade
