@@ -29,6 +29,8 @@ open_trade_instruments = set()
 
 
 def _get_dt():
+    weekend_flag = False
+
     utc_now = datetime.utcnow().replace(microsecond=0, second=0)
 
     minutes = 0 if utc_now.minute < 30 else 30
@@ -37,17 +39,18 @@ def _get_dt():
         if (utc_now.weekday() == 4 and utc_now.hour >= 20) or (
                 utc_now.weekday() == 6 and utc_now.hour <= 21) or utc_now.weekday() == 5:
             print('Weekend hours, need to wait until market opens again.')
+            weekend_flag = True
 
             while True:
                 new_utc_now = datetime.utcnow().replace(microsecond=0, second=0)
 
-                if new_utc_now.weekday() == 6 and new_utc_now.hour > 20:
+                if new_utc_now.weekday() == 6 and new_utc_now.hour > 21:
                     break
 
     dt_m30 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
     dt_h4 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
-    return dt_m30, dt_h4
+    return dt_m30, dt_h4, weekend_flag
 
 
 def _get_open_trades(dt):
@@ -235,7 +238,7 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 def main():
     update_h4 = False
     error_flag = False
-    dt_m30, dt_h4 = _get_dt()
+    dt_m30, dt_h4, weekend_flag = _get_dt()
 
     if dt_h4.minute > 0:
         dt_h4 = dt_h4.replace(minute=0)
@@ -255,10 +258,15 @@ def main():
         print('Starting new session; session started with open ' + str(currency_pair) + ' beep boop trade: ' + str(open_beep_boop_pairs[currency_pair]))
 
     while True:
-        dt_m30, dt_h4_tmp = _get_dt()
+        dt_m30, dt_h4_tmp, weekend_flag = _get_dt()
 
-        if update_h4 or (error_flag and dt_h4_tmp > dt_h4 + timedelta(hours=4)):
-            dt_h4 = dt_h4 + timedelta(hours=4)
+        if update_h4 or (error_flag and dt_h4_tmp > dt_h4 + timedelta(hours=4)) or weekend_flag:
+            if weekend_flag:
+                dt_h4 = dt_h4_tmp
+
+            else:
+                dt_h4 = dt_h4 + timedelta(hours=4)
+
             update_h4 = False
 
         error_flag = False
@@ -279,8 +287,9 @@ def main():
         # ------------------------------------------------- BEEP BOOP --------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
 
-        if datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') >= dt_h4:
-            update_h4 = True
+        if datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') >= dt_h4 or weekend_flag:
+            if not weekend_flag:
+                update_h4 = True
 
             data_sequences = {}
 

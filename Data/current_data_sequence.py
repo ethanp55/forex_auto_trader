@@ -283,6 +283,10 @@ class CurrentDataSequence:
         from_time = str(current_time - timedelta(hours=4 * 4000))
         to_time = str(current_time)
 
+        print('Data for beep boop on ' + str(currency_pair) + ':')
+        print(from_time)
+        print(to_time)
+
         data_downloader = DataDownloader()
         candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H4', from_time, to_time)
 
@@ -294,7 +298,7 @@ class CurrentDataSequence:
 
         for candle in candles:
             if not candle.complete:
-                print('One of the bars has not been finished')
+                print('One of the bars has not been finished: ' + str(candle.time))
                 return False
 
             curr_date = candle.time
