@@ -4,42 +4,27 @@ import time
 from Data.current_data_sequence import CurrentDataSequence
 from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
-from Model.macd_crossover import MACDCrossover
-from Model.kiss import KISS
 from Model.beep_boop import BeepBoop
 import traceback
 
 weekend_day_nums = [4, 5, 6]
 time_frame_granularity = 4  # Hours
-macd_pips_to_risk = {'GBP_USD': 30 / 10000}
-macd_gain_risk_ratio = {'GBP_USD': 2.75}
-macd_n_units_per_trade = {'GBP_USD': 10000}
-kiss_pips_to_risk = {'AUD_USD': 20 / 10000}
-kiss_gain_risk_ratio = {'AUD_USD': 2.75}
-kiss_n_units_per_trade = {'AUD_USD': 10000}
 beep_boop_pips_to_risk = {'NZD_USD': 5 / 10000}
 beep_boop_gain_risk_ratio = {'NZD_USD': 5}
 beep_boop_n_units_per_trade = {'NZD_USD': 50000}
 current_data_sequence = CurrentDataSequence()
 data_downloader = DataDownloader()
-open_macd_pairs = {'GBP_USD': True}
-open_kiss_pairs = {'AUD_USD': True}
 open_beep_boop_pairs = {'NZD_USD': True}
 open_trade_instruments = set()
 
 
 def _get_dt():
-    weekend_flag = False
-
     utc_now = datetime.utcnow().replace(microsecond=0, second=0)
-
-    minutes = 0 if utc_now.minute < 30 else 30
 
     if utc_now.weekday() in weekend_day_nums:
         if (utc_now.weekday() == 4 and utc_now.hour >= 20) or (
                 utc_now.weekday() == 6 and utc_now.hour <= 21) or utc_now.weekday() == 5:
             print('Weekend hours, need to wait until market opens again.')
-            weekend_flag = True
 
             while True:
                 new_utc_now = datetime.utcnow().replace(microsecond=0, second=0)
@@ -47,26 +32,17 @@ def _get_dt():
                 if new_utc_now.weekday() == 6 and new_utc_now.hour > 21:
                     break
 
-    dt_m30 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
-    dt_h4 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=minutes, second=0) + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    dt_h4 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, minute=0, second=0) + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
-    return dt_m30, dt_h4, weekend_flag
+    return dt_h4
 
 
 def _get_open_trades(dt):
     try:
         global open_trade_instruments
-        global open_macd_pairs
-        global open_kiss_pairs
         global open_beep_boop_pairs
 
         open_trade_instruments.clear()
-
-        for currency_pair in open_macd_pairs:
-            open_macd_pairs[currency_pair] = True
-
-        for currency_pair in open_kiss_pairs:
-            open_kiss_pairs[currency_pair] = True
 
         for currency_pair in open_beep_boop_pairs:
             open_beep_boop_pairs[currency_pair] = True
@@ -84,12 +60,6 @@ def _get_open_trades(dt):
         for order in open_trades:
             open_trade_instruments.add(order.instrument)
 
-        for currency_pair in open_macd_pairs:
-            open_macd_pairs[currency_pair] = currency_pair in open_trade_instruments
-
-        for currency_pair in open_kiss_pairs:
-            open_kiss_pairs[currency_pair] = currency_pair in open_trade_instruments
-
         for currency_pair in open_beep_boop_pairs:
             open_beep_boop_pairs[currency_pair] = currency_pair in open_trade_instruments
 
@@ -97,60 +67,6 @@ def _get_open_trades(dt):
 
     except Exception as e:
         error_message = 'Error when trying to get open trades'
-
-        print(error_message)
-        print(e)
-        print(traceback.print_exc())
-
-        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
-            time.sleep(1)
-
-        return False
-
-
-def _update_macd_crossover_current_data_sequence(dt, currency_pair):
-    try:
-        current_data_update_success = current_data_sequence.update_macd_crossover_current_data_sequence(currency_pair)
-
-        if not current_data_update_success:
-            print('Error updating macd crossover data for ' + str(currency_pair))
-
-            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
-                time.sleep(1)
-
-            return False
-
-        return True
-
-    except Exception as e:
-        error_message = 'Error when trying to get update ' + str(currency_pair) + ' macd crossover current data sequence'
-
-        print(error_message)
-        print(e)
-        print(traceback.print_exc())
-
-        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
-            time.sleep(1)
-
-        return False
-
-
-def _update_kiss_current_data_sequence(dt, currency_pair):
-    try:
-        current_data_update_success = current_data_sequence.update_kiss_current_data_sequence(currency_pair)
-
-        if not current_data_update_success:
-            print('Error updating kiss data for ' + str(currency_pair))
-
-            while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt:
-                time.sleep(1)
-
-            return False
-
-        return True
-
-    except Exception as e:
-        error_message = 'Error when trying to get update ' + str(currency_pair) + ' kiss current data sequence'
 
         print(error_message)
         print(e)
@@ -236,143 +152,49 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 
 
 def main():
-    update_h4 = False
-    error_flag = False
-    dt_m30, dt_h4, weekend_flag = _get_dt()
+    dt_h4 = _get_dt()
 
     if dt_h4.minute > 0:
         dt_h4 = dt_h4.replace(minute=0)
 
-    open_trades_success = _get_open_trades(dt_m30)
+    open_trades_success = _get_open_trades(dt_h4)
 
     if not open_trades_success:
         main()
-
-    for currency_pair in open_macd_pairs:
-        print('Starting new session; session started with open ' + str(currency_pair) + ' macd trade: ' + str(open_macd_pairs[currency_pair]))
-
-    for currency_pair in open_kiss_pairs:
-        print('Starting new session; session started with open ' + str(currency_pair) + ' kiss trade: ' + str(open_kiss_pairs[currency_pair]))
 
     for currency_pair in open_beep_boop_pairs:
         print('Starting new session; session started with open ' + str(currency_pair) + ' beep boop trade: ' + str(open_beep_boop_pairs[currency_pair]))
 
     while True:
-        dt_m30, dt_h4_tmp, weekend_flag = _get_dt()
-
-        if update_h4 or (error_flag and dt_h4_tmp > dt_h4 + timedelta(hours=4)) or weekend_flag:
-            if weekend_flag:
-                dt_h4 = dt_h4_tmp
-
-            else:
-                dt_h4 = dt_h4 + timedelta(hours=4)
-
-            update_h4 = False
+        dt_h4 = _get_dt()
 
         error_flag = False
 
         print('\n---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')
-        print(dt_m30)
         print(dt_h4)
 
-        open_trades_success = _get_open_trades(dt_m30)
+        open_trades_success = _get_open_trades(dt_h4)
 
         if not open_trades_success:
-            error_flag = True
             continue
 
         # --------------------------------------------------------------------------------------------------------------
         # ------------------------------------------------- BEEP BOOP --------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
 
-        if datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') >= dt_h4 or weekend_flag:
-            if not weekend_flag:
-                update_h4 = True
-
-            data_sequences = {}
-
-            for currency_pair in open_beep_boop_pairs:
-                if not open_beep_boop_pairs[currency_pair]:
-                    current_data_update_success = _update_beep_boop_current_data_sequence(dt_m30, currency_pair)
-
-                    if not current_data_update_success:
-                        error_flag = True
-                        break
-
-                    data_sequences[currency_pair] = current_data_sequence.get_beep_boop_sequence_for_pair(currency_pair)
-
-            if error_flag:
-                continue
-
-            predictions = {}
-
-            for currency_pair in data_sequences:
-                pred = BeepBoop.predict(currency_pair, data_sequences[currency_pair])
-                predictions[currency_pair] = pred
-
-            for currency_pair in predictions:
-                pred = predictions[currency_pair]
-
-                if pred is not None:
-                    print('\n----------------------------------')
-                    print('-- PLACING NEW ORDER (BEEP BOOP) --')
-                    print('------------ ' + str(currency_pair) + ' -------------')
-                    print('----------------------------------\n')
-
-                    candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'H4')
-
-                    if candles is None:
-                        error_flag = True
-                        break
-
-                    last_candle = candles[-1]
-                    curr_bid_open = float(last_candle.bid.o)
-                    curr_ask_open = float(last_candle.ask.o)
-                    gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
-                    pips_to_risk = beep_boop_pips_to_risk[currency_pair]
-                    n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
-
-                    if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
-
-                    else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
-
-                    print('Action: ' + str(pred) + ' for ' + str(currency_pair))
-                    print('Profit price: ' + str(profit_price))
-                    print()
-
-                    order_placed = _place_market_order(dt_m30, currency_pair, pred, n_units_per_trade, profit_price,
-                                                       pips_to_risk)
-
-                    if not order_placed:
-                        error_flag = True
-                        break
-
-            if error_flag:
-                continue
-
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        # --------------------------------------------------------------------------------------------------------------
-        # ------------------------------------------------------ MACD --------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
         data_sequences = {}
 
-        for currency_pair in open_macd_pairs:
-            if not open_macd_pairs[currency_pair]:
-                current_data_update_success = _update_macd_crossover_current_data_sequence(dt_m30, currency_pair)
+        for currency_pair in open_beep_boop_pairs:
+            if not open_beep_boop_pairs[currency_pair]:
+                current_data_update_success = _update_beep_boop_current_data_sequence(dt_h4, currency_pair)
 
                 if not current_data_update_success:
                     error_flag = True
                     break
 
-                data_sequences[currency_pair] = current_data_sequence.get_macd_sequence_for_pair(currency_pair)
+                data_sequences[currency_pair] = current_data_sequence.get_beep_boop_sequence_for_pair(currency_pair)
 
         if error_flag:
             continue
@@ -380,7 +202,7 @@ def main():
         predictions = {}
 
         for currency_pair in data_sequences:
-            pred = MACDCrossover.predict(currency_pair, data_sequences[currency_pair])
+            pred = BeepBoop.predict(currency_pair, data_sequences[currency_pair])
             predictions[currency_pair] = pred
 
         for currency_pair in predictions:
@@ -388,11 +210,11 @@ def main():
 
             if pred is not None:
                 print('\n----------------------------------')
-                print('---- PLACING NEW ORDER (MACD) ----')
+                print('-- PLACING NEW ORDER (BEEP BOOP) --')
                 print('------------ ' + str(currency_pair) + ' -------------')
                 print('----------------------------------\n')
 
-                candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'M30')
+                candles = _get_current_data(dt_h4, currency_pair, ['bid', 'ask'], 'H4')
 
                 if candles is None:
                     error_flag = True
@@ -401,9 +223,9 @@ def main():
                 last_candle = candles[-1]
                 curr_bid_open = float(last_candle.bid.o)
                 curr_ask_open = float(last_candle.ask.o)
-                gain_risk_ratio = macd_gain_risk_ratio[currency_pair]
-                pips_to_risk = macd_pips_to_risk[currency_pair]
-                n_units_per_trade = macd_n_units_per_trade[currency_pair]
+                gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
+                pips_to_risk = beep_boop_pips_to_risk[currency_pair]
+                n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
 
                 if pred == 'buy':
                     profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
@@ -415,78 +237,7 @@ def main():
                 print('Profit price: ' + str(profit_price))
                 print()
 
-                order_placed = _place_market_order(dt_m30, currency_pair, pred, n_units_per_trade, profit_price,
-                                                   pips_to_risk)
-
-                if not order_placed:
-                    error_flag = True
-                    break
-
-        if error_flag:
-            continue
-
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        # --------------------------------------------------------------------------------------------------------------
-        # ------------------------------------------------------ KISS --------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        data_sequences = {}
-
-        for currency_pair in open_kiss_pairs:
-            if not open_kiss_pairs[currency_pair]:
-                current_data_update_success = _update_kiss_current_data_sequence(dt_m30, currency_pair)
-
-                if not current_data_update_success:
-                    error_flag = True
-                    break
-
-                data_sequences[currency_pair] = current_data_sequence.get_kiss_sequence_for_pair(currency_pair)
-
-        if error_flag:
-            continue
-
-        predictions = {}
-
-        for currency_pair in data_sequences:
-            pred = KISS.predict(currency_pair, data_sequences[currency_pair])
-            predictions[currency_pair] = pred
-
-        for currency_pair in predictions:
-            pred = predictions[currency_pair]
-
-            if pred is not None:
-                print('\n----------------------------------')
-                print('---- PLACING NEW ORDER (KISS) ----')
-                print('------------ ' + str(currency_pair) + ' -------------')
-                print('----------------------------------\n')
-
-                candles = _get_current_data(dt_m30, currency_pair, ['bid', 'ask'], 'M30')
-
-                if candles is None:
-                    error_flag = True
-                    break
-
-                last_candle = candles[-1]
-                curr_bid_open = float(last_candle.bid.o)
-                curr_ask_open = float(last_candle.ask.o)
-                gain_risk_ratio = kiss_gain_risk_ratio[currency_pair]
-                pips_to_risk = kiss_pips_to_risk[currency_pair]
-                n_units_per_trade = kiss_n_units_per_trade[currency_pair]
-
-                if pred == 'buy':
-                    profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
-
-                else:
-                    profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
-
-                print('Action: ' + str(pred) + ' for ' + str(currency_pair))
-                print('Profit price: ' + str(profit_price))
-                print()
-
-                order_placed = _place_market_order(dt_m30, currency_pair, pred, n_units_per_trade, profit_price,
+                order_placed = _place_market_order(dt_h4, currency_pair, pred, n_units_per_trade, profit_price,
                                                    pips_to_risk)
 
                 if not order_placed:
@@ -503,21 +254,15 @@ def main():
         # Give Oanda a few seconds to process the trades
         time.sleep(15)
 
-        open_trades_success = _get_open_trades(dt_m30)
+        open_trades_success = _get_open_trades(dt_h4)
 
         if not open_trades_success:
             continue
 
-        for currency_pair in open_macd_pairs:
-            print('Open macd trade for ' + str(currency_pair) + ': ' + str(open_macd_pairs[currency_pair]))
-
-        for currency_pair in open_kiss_pairs:
-            print('Open kiss trade for ' + str(currency_pair) + ': ' + str(open_kiss_pairs[currency_pair]))
-
         for currency_pair in open_beep_boop_pairs:
             print('Open beep boop trade for ' + str(currency_pair) + ': ' + str(open_beep_boop_pairs[currency_pair]))
 
-        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_m30:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_h4:
             time.sleep(1)
 
         print('---------------------------------------------------------------------------------')
