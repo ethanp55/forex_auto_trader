@@ -284,8 +284,6 @@ class CurrentDataSequence:
         to_time = str(current_time)
 
         print('Data for beep boop on ' + str(currency_pair) + ':')
-        print(from_time)
-        print(to_time)
 
         data_downloader = DataDownloader()
         download_finished = False
