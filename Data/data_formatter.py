@@ -204,8 +204,6 @@ class DataFormatter(object):
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
         df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
         df['ema50'] = talib.EMA(df['Bid_Close'], timeperiod=50)
-        df.dropna(inplace=True)
-        df.reset_index(drop=True, inplace=True)
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
         df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
