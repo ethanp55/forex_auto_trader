@@ -17,7 +17,7 @@ class OrderHandler(object):
         kwargs['timeInForce'] = 'FOK'
         kwargs['positionFill'] = 'DEFAULT'
         kwargs['takeProfitOnFill'] = {'price': str(profit_price), 'timeInForce': 'GTC'}
-        # kwargs['stopLossOnFill'] = {'distance': str(self.pips_to_risk), 'timeInForce': 'GTC'}
+        # kwargs['stopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
         kwargs['trailingStopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
 
         # Create the Oanda API context

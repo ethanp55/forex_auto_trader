@@ -1,31 +1,38 @@
 
 
 class BeepBoop(object):
+    def __init__(self, max_open_trades):
+        self.max_open_trades = max_open_trades
 
-    @staticmethod
-    def predict(currency_pair, current_data):
-        macdhist1 = current_data.loc[current_data.index[-1], 'macdhist']
-        ema1 = current_data.loc[current_data.index[-1], 'ema']
+    def predict(self, currency_pair, current_data, n_open_trades):
+        beep_boop1 = current_data.loc[current_data.index[-1], 'beep_boop']
+        beep_boop2 = current_data.loc[current_data.index[-2], 'beep_boop']
+        ema200 = current_data.loc[current_data.index[-1], 'ema200']
         bid_low1 = current_data.loc[current_data.index[-1], 'Bid_Low']
         bid_high1 = current_data.loc[current_data.index[-1], 'Bid_High']
+        bid_open1 = current_data.loc[current_data.index[-1], 'Bid_Open']
+        bid_close1 = current_data.loc[current_data.index[-1], 'Bid_Close']
 
-        print('\nNew data for: ' + str(currency_pair))
-        print('macdhist1: ' + str(macdhist1))
-        print('ema1: ' + str(ema1))
+        print('New data for: ' + str(currency_pair))
+        print('beep_boop1: ' + str(beep_boop1))
+        print('beep_boop2: ' + str(beep_boop2))
+        print('ema200: ' + str(ema200))
         print('bid_low1: ' + str(bid_low1))
         print('bid_high1: ' + str(bid_high1))
+        print('bid_open1: ' + str(bid_open1))
+        print('bid_close1: ' + str(bid_close1))
         print()
 
-        if float(macdhist1) > 0 and float(bid_low1) > float(ema1):
+        if float(bid_low1) > float(ema200) and beep_boop2 == 0 and beep_boop1 == 1 and n_open_trades < self.max_open_trades and bid_open1 < bid_close1:
             trade = 'buy'
 
-        elif float(macdhist1) < 0 and float(bid_high1) < float(ema1):
+        elif float(bid_high1) < float(ema200) and beep_boop2 == 0 and beep_boop1 == 2 and n_open_trades < self.max_open_trades and bid_open1 > bid_close1:
             trade = 'sell'
 
         else:
             trade = None
 
         print('Beep boop trade: ' + str(trade))
-        print('-------------------------------------------------------')
+        print('-------------------------------------------------------\n')
 
         return trade

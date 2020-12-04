@@ -11,7 +11,7 @@ class CurrentDataSequence:
         self.current_sequences = {'EUR_USD': None, 'GBP_CHF': None, 'USD_CAD': None, 'AUD_USD': None}
         self.macd_current_sequences = {'EUR_USD': None, 'GBP_USD': None}
         self.kiss_current_sequences = {'AUD_USD': None}
-        self.beep_boop_current_sequences = {'NZD_USD': None}
+        self.beep_boop_current_sequences = {'GBP_USD': None}
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 
@@ -280,7 +280,7 @@ class CurrentDataSequence:
         current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=0) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
 
-        from_time = str(current_time - timedelta(hours=4 * 4000))
+        from_time = str(current_time - timedelta(hours=4000))
         to_time = str(current_time)
 
         print('Data for beep boop on ' + str(currency_pair) + ':')
@@ -289,7 +289,7 @@ class CurrentDataSequence:
         download_finished = False
 
         while not download_finished:
-            candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H4', from_time, to_time)
+            candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H1', from_time, to_time)
             download_finished = True
 
             if error_message is not None:
@@ -315,12 +315,12 @@ class CurrentDataSequence:
         data_sequence.dropna(inplace=True)
         data_sequence.reset_index(drop=True, inplace=True)
 
-        if data_sequence.shape[0] < 500:
+        if data_sequence.shape[0] < 1000:
             print('Current sequence length is too small: ' + str(data_sequence.shape[0]))
             return False
 
         data_sequence = self.data_formatter.format_beep_boop_data(currency_pair, data_sequence)
-        data_sequence = data_sequence.iloc[data_sequence.shape[0] - 60:, :]
+        data_sequence = data_sequence.iloc[data_sequence.shape[0] - 500:, :]
         data_sequence.reset_index(drop=True, inplace=True)
 
         self.beep_boop_current_sequences[currency_pair] = data_sequence

@@ -158,11 +158,58 @@ class DataFormatter(object):
 
         return df
 
+    def _add_fractal(self, df, i, look_back=2):
+        if i >= look_back and i < df.shape[0] - look_back:
+            lows = []
+            highs = []
+
+            for j in range(1, look_back + 1):
+                prev_bid_low, prev_bid_high = df.loc[df.index[i - j], ['Bid_Low', 'Bid_High']]
+                future_bid_low, future_bid_high = df.loc[df.index[i + j], ['Bid_Low', 'Bid_High']]
+
+                lows.append(prev_bid_low)
+                lows.append(future_bid_low)
+                highs.append(prev_bid_high)
+                highs.append(future_bid_high)
+
+            bid_low, bid_high = df.loc[df.index[i], ['Bid_Low', 'Bid_High']]
+
+            if bid_low < min(lows):
+                return 1
+
+            elif bid_high > max(highs):
+                return 2
+
+            else:
+                return 0
+
+        else:
+            return np.nan
+
+    def _add_beep_boop(self, df, i):
+        macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Bid_Low', 'Bid_High']]
+
+        if macdhist > 0 and bid_low > ema50:
+            return 1
+
+        elif macdhist < 0 and bid_high < ema50:
+            return 2
+
+        else:
+            return 0
+
     def format_beep_boop_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
-        df['ema'] = talib.EMA(df['Bid_Close'], timeperiod=50)
+        df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
+        df['ema50'] = talib.EMA(df['Bid_Close'], timeperiod=50)
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
+        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
         dates = df['Date']
         df.drop('Date', axis=1, inplace=True)
