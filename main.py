@@ -281,7 +281,7 @@ def main():
         predictions = {}
 
         for currency_pair in data_sequences:
-            pred = beep_boop_model.predict(currency_pair, data_sequences[currency_pair], num_open_trades)
+            pred = beep_boop_model.predict(currency_pair, data_sequences[currency_pair], num_open_trades, all_buys, all_sells)
             predictions[currency_pair] = pred
 
         for currency_pair in predictions:
