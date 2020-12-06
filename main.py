@@ -8,8 +8,8 @@ from Model.beep_boop import BeepBoop
 import traceback
 
 weekend_day_nums = [4, 5, 6]
-beep_boop_gain_risk_ratio = {'GBP_USD': 2}
-beep_boop_pullback_cushion = {'GBP_USD': 0.0020}
+beep_boop_gain_risk_ratio = {'GBP_USD': 1.4}
+beep_boop_pullback_cushion = {'GBP_USD': 0.0055}
 max_open_trades = 10
 beep_boop_n_units_per_trade = {'GBP_USD': 10000}
 current_data_sequence = CurrentDataSequence()
@@ -17,8 +17,7 @@ data_downloader = DataDownloader()
 open_beep_boop_pairs = {'GBP_USD': True}
 open_trade_instruments = set()
 beep_boop_model = BeepBoop(max_open_trades)
-account_balance = 2000
-percent_to_risk = 0.05
+max_pips_to_risk = 0.0100
 all_buys = False
 all_sells = False
 num_open_trades = 0
@@ -306,7 +305,7 @@ def main():
                 gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
                 pips_to_risk = _calculate_pips_to_risk(data_sequences[currency_pair], pred, beep_boop_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
 
-                if pips_to_risk is not None and (pips_to_risk * 10000) / account_balance <= percent_to_risk:
+                if pips_to_risk is not None and pips_to_risk <= max_pips_to_risk:
                     n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
 
                     if pred == 'buy':
