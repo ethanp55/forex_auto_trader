@@ -189,6 +189,11 @@ class DataFormatter(object):
     def _add_beep_boop(self, df, i):
         macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Bid_Low', 'Bid_High']]
 
+        print(macdhist)
+        print(type(macdhist))
+        print(ema50)
+        print(type(ema50))
+
         if macdhist > 0 and bid_low > ema50:
             return 1
 
