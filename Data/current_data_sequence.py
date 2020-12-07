@@ -320,7 +320,6 @@ class CurrentDataSequence:
             return False
 
         data_sequence = self.data_formatter.format_beep_boop_data(currency_pair, data_sequence)
-        data_sequence = data_sequence.iloc[data_sequence.shape[0] - 500:, :]
         data_sequence.reset_index(drop=True, inplace=True)
 
         self.beep_boop_current_sequences[currency_pair] = data_sequence

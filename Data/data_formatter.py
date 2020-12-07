@@ -167,17 +167,17 @@ class DataFormatter(object):
                 prev_bid_low, prev_bid_high = df.loc[df.index[i - j], ['Bid_Low', 'Bid_High']]
                 future_bid_low, future_bid_high = df.loc[df.index[i + j], ['Bid_Low', 'Bid_High']]
 
-                lows.append(float(prev_bid_low))
-                lows.append(float(future_bid_low))
-                highs.append(float(prev_bid_high))
-                highs.append(float(future_bid_high))
+                lows.append(prev_bid_low)
+                lows.append(future_bid_low)
+                highs.append(prev_bid_high)
+                highs.append(future_bid_high)
 
             bid_low, bid_high = df.loc[df.index[i], ['Bid_Low', 'Bid_High']]
 
-            if float(bid_low) < min(lows):
+            if bid_low < min(lows):
                 return 1
 
-            elif float(bid_high) > max(highs):
+            elif bid_high > max(highs):
                 return 2
 
             else:
@@ -189,10 +189,10 @@ class DataFormatter(object):
     def _add_beep_boop(self, df, i):
         macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Bid_Low', 'Bid_High']]
 
-        if float(macdhist) > 0 and float(bid_low) > float(ema50):
+        if macdhist > 0 and bid_low > ema50:
             return 1
 
-        elif float(macdhist) < 0 and float(bid_high) < float(ema50):
+        elif macdhist < 0 and bid_high < ema50:
             return 2
 
         else:
@@ -200,20 +200,23 @@ class DataFormatter(object):
 
     def format_beep_boop_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+        dates = df['Date']
+        df.drop('Date', axis=1, inplace=True)
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
         df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
         df['ema50'] = talib.EMA(df['Bid_Close'], timeperiod=50)
+        df = df.astype(float)
+
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df = df.iloc[df.shape[0] - 150:, :]
+        df.reset_index(drop=True, inplace=True)
+
         df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
-        df.dropna(inplace=True)
-        df.reset_index(drop=True, inplace=True)
-
-        dates = df['Date']
-        df.drop('Date', axis=1, inplace=True)
-
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
