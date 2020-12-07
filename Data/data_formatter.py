@@ -167,17 +167,17 @@ class DataFormatter(object):
                 prev_bid_low, prev_bid_high = df.loc[df.index[i - j], ['Bid_Low', 'Bid_High']]
                 future_bid_low, future_bid_high = df.loc[df.index[i + j], ['Bid_Low', 'Bid_High']]
 
-                lows.append(prev_bid_low)
-                lows.append(future_bid_low)
-                highs.append(prev_bid_high)
-                highs.append(future_bid_high)
+                lows.append(float(prev_bid_low))
+                lows.append(float(future_bid_low))
+                highs.append(float(prev_bid_high))
+                highs.append(float(future_bid_high))
 
             bid_low, bid_high = df.loc[df.index[i], ['Bid_Low', 'Bid_High']]
 
-            if bid_low < min(lows):
+            if float(bid_low) < min(lows):
                 return 1
 
-            elif bid_high > max(highs):
+            elif float(bid_high) > max(highs):
                 return 2
 
             else:
@@ -189,21 +189,10 @@ class DataFormatter(object):
     def _add_beep_boop(self, df, i):
         macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Bid_Low', 'Bid_High']]
 
-        print(macdhist)
-        print(type(macdhist))
-        print(ema50)
-        print(type(ema50))
-        print(bid_low)
-        print(type(bid_low))
-        print(bid_high)
-        print(type(bid_high))
-        print()
-        print(df.head())
-
-        if macdhist > 0 and bid_low > ema50:
+        if float(macdhist) > 0 and float(bid_low) > float(ema50):
             return 1
 
-        elif macdhist < 0 and bid_high < ema50:
+        elif float(macdhist) < 0 and float(bid_high) < float(ema50):
             return 2
 
         else:
