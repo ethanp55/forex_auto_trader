@@ -193,6 +193,12 @@ class DataFormatter(object):
         print(type(macdhist))
         print(ema50)
         print(type(ema50))
+        print(bid_low)
+        print(type(bid_low))
+        print(bid_high)
+        print(type(bid_high))
+        print()
+        print(df.head())
 
         if macdhist > 0 and bid_low > ema50:
             return 1
@@ -209,10 +215,10 @@ class DataFormatter(object):
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
         df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
         df['ema50'] = talib.EMA(df['Bid_Close'], timeperiod=50)
+        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
-        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
