@@ -288,15 +288,21 @@ def main():
             pred = predictions[currency_pair]
 
             if pred is not None:
-                print('----------------------------------')
-                print('-- PLACING NEW ORDER (BEEP BOOP) --')
-                print('------------ ' + str(currency_pair) + ' -------------')
-                print('----------------------------------\n')
+                most_recent_data = False
 
-                candles = _get_current_data(dt_h1, currency_pair, ['bid', 'ask'], 'H1')
+                while not most_recent_data:
+                    most_recent_data = True
+                    candles = _get_current_data(dt_h1, currency_pair, ['bid', 'ask'], 'H1')
 
-                if candles is None:
-                    error_flag = True
+                    if candles is None:
+                        error_flag = True
+                        break
+
+                    if candles[-1].complete:
+                        print('The current market data is not available yet: ' + str(candles[-1].time))
+                        most_recent_data = False
+
+                if error_flag:
                     break
 
                 last_candle = candles[-1]
@@ -306,6 +312,11 @@ def main():
                 pips_to_risk = _calculate_pips_to_risk(data_sequences[currency_pair], pred, beep_boop_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
 
                 if pips_to_risk is not None and pips_to_risk <= max_pips_to_risk:
+                    print('----------------------------------')
+                    print('-- PLACING NEW ORDER (BEEP BOOP) --')
+                    print('------------ ' + str(currency_pair) + ' -------------')
+                    print('----------------------------------\n')
+
                     n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
 
                     if pred == 'buy':

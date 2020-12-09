@@ -200,7 +200,7 @@ class DataFormatter(object):
 
     def format_beep_boop_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
-        dates = df['Date']
+        dates = df.iloc[df.shape[0] - 150:, 0]
         df.drop('Date', axis=1, inplace=True)
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
