@@ -336,6 +336,9 @@ def main():
                         error_flag = True
                         break
 
+                else:
+                    print('Pips to risk is none or too high: ' + str(pips_to_risk))
+
         if error_flag:
             continue
 
