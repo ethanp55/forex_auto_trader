@@ -18,7 +18,6 @@ class OrderHandler(object):
         kwargs['positionFill'] = 'DEFAULT'
         kwargs['takeProfitOnFill'] = {'price': str(profit_price), 'timeInForce': 'GTC'}
         # kwargs['stopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
-        pips_to_risk = -pips_to_risk if order_type == 'sell' else pips_to_risk
         kwargs['trailingStopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
 
         # Create the Oanda API context
@@ -34,12 +33,7 @@ class OrderHandler(object):
         # Use the Oanda API context as well as the key word arguments to place the order
         response = api_context.order.market(Config.get_account(), **kwargs)
 
-        print("Response: {} ({})\n".format(response.status, response.reason))
-        
-        print(kwargs['instrument'])
-        print(kwargs['units'])
-        print(kwargs['takeProfitOnFill'])
-        print(kwargs['trailingStopLossOnFill'])
+        print("Response: {} ({})\n{}".format(response.status, response.reason, response.body))
 
     @staticmethod
     def get_open_trades():
