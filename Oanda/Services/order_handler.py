@@ -35,6 +35,11 @@ class OrderHandler(object):
         response = api_context.order.market(Config.get_account(), **kwargs)
 
         print("Response: {} ({})\n".format(response.status, response.reason))
+        
+        print(kwargs['instrument'])
+        print(kwargs['units'])
+        print(kwargs['takeProfitOnFill'])
+        print(kwargs['trailingStopLossOnFill'])
 
     @staticmethod
     def get_open_trades():
