@@ -20,11 +20,11 @@ class BeepBoop(object):
         print('beep_boop2: ' + str(beep_boop2))
         print('beep_boop3: ' + str(beep_boop3))
         print('beep_boop4: ' + str(beep_boop4))
-        print('ema200: ' + str(ema200))
-        print('bid_low1: ' + str(bid_low1))
-        print('bid_high1: ' + str(bid_high1))
-        print('bid_open1: ' + str(bid_open1))
-        print('bid_close1: ' + str(bid_close1))
+        # print('ema200: ' + str(ema200))
+        # print('bid_low1: ' + str(bid_low1))
+        # print('bid_high1: ' + str(bid_high1))
+        # print('bid_open1: ' + str(bid_open1))
+        # print('bid_close1: ' + str(bid_close1))
         print()
 
         if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1 and n_open_trades < self.max_open_trades and all_buys:
