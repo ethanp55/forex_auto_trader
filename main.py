@@ -327,6 +327,7 @@ def main():
 
                     print('Action: ' + str(pred) + ' for ' + str(currency_pair))
                     print('Profit price: ' + str(profit_price))
+                    print('Pips to risk: ' + str(pips_to_risk))
                     print()
 
                     order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
