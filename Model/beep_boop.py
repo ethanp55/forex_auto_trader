@@ -27,10 +27,10 @@ class BeepBoop(object):
         print('bid_close1: ' + str(bid_close1))
         print()
 
-        if bid_low1 > ema200 and beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1 and n_open_trades < self.max_open_trades and bid_open1 < bid_close1 and all_buys:
+        if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1 and n_open_trades < self.max_open_trades and all_buys:
             trade = 'buy'
 
-        elif bid_high1 < ema200 and beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2 and n_open_trades < self.max_open_trades and bid_open1 > bid_close1 and all_sells:
+        elif beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2 and n_open_trades < self.max_open_trades and all_sells:
             trade = 'sell'
 
         else:
