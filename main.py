@@ -8,8 +8,8 @@ from Model.beep_boop import BeepBoop
 import traceback
 
 weekend_day_nums = [4, 5, 6]
-beep_boop_gain_risk_ratio = {'GBP_USD': 1.3}
-beep_boop_pullback_cushion = {'GBP_USD': 0.0075}
+beep_boop_gain_risk_ratio = {'GBP_USD': 1.7}
+beep_boop_pullback_cushion = {'GBP_USD': 0.0050}
 max_open_trades = 10
 beep_boop_n_units_per_trade = {'GBP_USD': 10000}
 current_data_sequence = CurrentDataSequence()
