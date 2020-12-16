@@ -286,28 +286,21 @@ class CurrentDataSequence:
         print('Data for beep boop on ' + str(currency_pair) + ':')
 
         data_downloader = DataDownloader()
-        download_finished = False
 
-        while not download_finished:
-            candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H1', from_time, to_time)
-            download_finished = True
+        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H1', from_time, to_time)
 
-            if error_message is not None:
-                print(error_message)
-                return False
+        if error_message is not None:
+            print(error_message)
+            return False
 
-            np_data = []
+        np_data = []
 
-            for candle in candles:
-                if not candle.complete:
-                    print('One of the bars has not been finished: ' + str(candle.time))
-                    download_finished = False
+        for candle in candles:
+            curr_date = candle.time
+            curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
 
-                curr_date = candle.time
-                curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
-
-                row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c)]
-                np_data.append(row)
+            row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c)]
+            np_data.append(row)
 
         np_data = np.array(np_data)
 
