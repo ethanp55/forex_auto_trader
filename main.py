@@ -73,11 +73,11 @@ def _get_open_trades(dt):
 
             return False
 
-        recent_date = np.inf
+        recent_date = -np.inf
         trade_types = []
 
         for order in open_trades:
-            if float(order.openTime) < recent_date:
+            if float(order.openTime) > recent_date:
                 recent_date = float(order.openTime)
                 prev_trade = order
 
