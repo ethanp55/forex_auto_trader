@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import pytz as tz
 import time
+import numpy as np
 from Data.current_data_sequence import CurrentDataSequence
 from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
@@ -9,7 +10,7 @@ import traceback
 
 weekend_day_nums = [4, 5, 6]
 beep_boop_gain_risk_ratio = {'GBP_USD': 1.7}
-beep_boop_pullback_cushion = {'GBP_USD': 0.0050}
+beep_boop_pullback_cushion = {'GBP_USD': 0.0065}
 max_open_trades = 10
 beep_boop_n_units_per_trade = {'GBP_USD': 10000}
 current_data_sequence = CurrentDataSequence()
@@ -21,6 +22,7 @@ max_pips_to_risk = 0.0100
 all_buys = False
 all_sells = False
 num_open_trades = 0
+prev_trade = None
 
 
 def _get_dt():
@@ -49,10 +51,12 @@ def _get_open_trades(dt):
         global all_buys
         global all_sells
         global num_open_trades
+        global prev_trade
 
         all_buys = False
         all_sells = False
         num_open_trades = max_open_trades
+        prev_trade = None
 
         open_trade_instruments.clear()
 
@@ -69,15 +73,15 @@ def _get_open_trades(dt):
 
             return False
 
-        for order in open_trades:
-            open_trade_instruments.add(order.instrument)
-
-        for currency_pair in open_beep_boop_pairs:
-            open_beep_boop_pairs[currency_pair] = currency_pair in open_trade_instruments
-
+        recent_date = np.inf
         trade_types = []
 
         for order in open_trades:
+            if float(order.openTime) < recent_date:
+                recent_date = float(order.openTime)
+                prev_trade = order
+
+            open_trade_instruments.add(order.instrument)
             trade_types.append(order.currentUnits > 0)
 
         if len(trade_types) == 0:
@@ -89,6 +93,9 @@ def _get_open_trades(dt):
             all_sells = not all_buys
 
         num_open_trades = len(open_trades)
+
+        for currency_pair in open_beep_boop_pairs:
+            open_beep_boop_pairs[currency_pair] = currency_pair in open_trade_instruments
 
         return True
 
@@ -178,52 +185,83 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
         return False
 
 
-def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open, ask_open):
+def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open, ask_open, gain_risk_ratio):
     pullback = None
     i = current_data.shape[0] - 1
 
-    if trade_type == 'buy':
-        while i >= 0:
-            curr_fractal = current_data.loc[current_data.index[i], 'fractal']
+    if num_open_trades == 0:
+        if trade_type == 'buy':
+            while i >= 0:
+                curr_fractal = current_data.loc[current_data.index[i], 'fractal']
 
-            if curr_fractal == 1:
-                pullback = current_data.loc[current_data.index[i], 'Ask_Low']
-                break
+                if curr_fractal == 1:
+                    pullback = current_data.loc[current_data.index[i], 'Ask_Low']
+                    break
 
-            i -= 1
+                i -= 1
 
-    elif trade_type == 'sell':
-        while i >= 0:
-            curr_fractal = current_data.loc[current_data.index[i], 'fractal']
+        elif trade_type == 'sell':
+            while i >= 0:
+                curr_fractal = current_data.loc[current_data.index[i], 'fractal']
 
-            if curr_fractal == 2:
-                pullback = current_data.loc[current_data.index[i], 'Bid_High']
-                break
+                if curr_fractal == 2:
+                    pullback = current_data.loc[current_data.index[i], 'Bid_High']
+                    break
 
-            i -= 1
+                i -= 1
 
-    if pullback is not None and trade_type == 'buy':
-        stop_loss = round(pullback - pullback_cushion, 5)
+        if pullback is not None and trade_type == 'buy':
+            stop_loss = round(pullback - pullback_cushion, 5)
 
-        if stop_loss >= ask_open:
-            return None
+            if stop_loss >= ask_open:
+                return None, None, None
 
-        pips_to_risk = ask_open - stop_loss
+            # pips_to_risk = ask_open - stop_loss
+            #
+            # return pips_to_risk
 
-        return pips_to_risk
+            pips_to_risk = ask_open - stop_loss
 
-    elif pullback is not None and trade_type == 'sell':
-        stop_loss = round(pullback + pullback_cushion, 5)
+            return pips_to_risk, stop_loss, None
 
-        if stop_loss <= bid_open:
-            return None
+        elif pullback is not None and trade_type == 'sell':
+            stop_loss = round(pullback + pullback_cushion, 5)
 
-        pips_to_risk = stop_loss - bid_open
+            if stop_loss <= bid_open:
+                return None, None, None
 
-        return pips_to_risk
+            # pips_to_risk = stop_loss - bid_open
+            #
+            # return pips_to_risk
+
+            pips_to_risk = stop_loss - bid_open
+
+            return pips_to_risk, stop_loss, None
+
+        else:
+            return None, None, None
 
     else:
-        return None
+        prev_stop_loss = prev_trade.stopLossOrder.price
+        prev_stop_gain = prev_trade.takeProfitOrder.price
+
+        if trade_type == 'buy':
+            stop_loss = prev_stop_loss - 0.0001
+            pips_to_risk = ask_open - stop_loss
+            stop_gain = round(ask_open + (pips_to_risk * gain_risk_ratio), 5)
+
+            if stop_gain <= prev_stop_gain:
+              stop_gain = round(prev_stop_gain + 0.0001, 5)
+
+        else:
+            stop_loss = prev_stop_loss + 0.0001
+            pips_to_risk = stop_loss - bid_open
+            stop_gain = round(bid_open - (pips_to_risk * gain_risk_ratio), 5)
+
+            if stop_gain >= prev_stop_gain:
+              stop_gain = round(prev_stop_gain - 0.0001, 5)
+
+        return pips_to_risk, stop_loss, stop_gain
 
 
 def main():
@@ -309,7 +347,7 @@ def main():
                 curr_bid_open = float(last_candle.bid.o)
                 curr_ask_open = float(last_candle.ask.o)
                 gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
-                pips_to_risk = _calculate_pips_to_risk(data_sequences[currency_pair], pred, beep_boop_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
+                pips_to_risk, stop_loss, profit_price = _calculate_pips_to_risk(data_sequences[currency_pair], pred, beep_boop_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open, gain_risk_ratio)
 
                 if pips_to_risk is not None and pips_to_risk <= max_pips_to_risk:
                     print('----------------------------------')
@@ -319,20 +357,22 @@ def main():
 
                     n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
 
-                    if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
+                    if profit_price is None:
+                        if pred == 'buy':
+                            profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), 5)
 
-                    else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
+                        else:
+                            profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), 5)
 
                     print('Action: ' + str(pred) + ' for ' + str(currency_pair))
                     print('Profit price: ' + str(profit_price))
+                    print('Stop loss price: ' + str(stop_loss))
                     print('Pips to risk: ' + str(pips_to_risk))
                     print('Rounded pips to risk: ' + str(round(pips_to_risk, 5)))
                     print()
 
                     order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
-                                                       round(pips_to_risk, 5))
+                                                       round(stop_loss, 5))
 
                     if not order_placed:
                         error_flag = True
