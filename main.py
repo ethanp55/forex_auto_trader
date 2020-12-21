@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 import pytz as tz
 import time
-import numpy as np
 from Data.current_data_sequence import CurrentDataSequence
 from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
@@ -73,7 +72,7 @@ def _get_open_trades(dt):
 
             return False
 
-        recent_date = -np.inf
+        recent_date = 0
         trade_types = []
 
         for order in open_trades:
