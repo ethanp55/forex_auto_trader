@@ -1,10 +1,9 @@
 
 
 class BeepBoop(object):
-    def __init__(self, max_open_trades):
-        self.max_open_trades = max_open_trades
 
-    def predict(self, currency_pair, current_data, n_open_trades, all_buys, all_sells):
+    @staticmethod
+    def predict(currency_pair, current_data):
         beep_boop1 = current_data.loc[current_data.index[-1], 'beep_boop']
         beep_boop2 = current_data.loc[current_data.index[-2], 'beep_boop']
         beep_boop3 = current_data.loc[current_data.index[-3], 'beep_boop']
@@ -27,10 +26,10 @@ class BeepBoop(object):
         # print('bid_close1: ' + str(bid_close1))
         print()
 
-        if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1 and n_open_trades < self.max_open_trades and all_buys:
+        if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1:
             trade = 'buy'
 
-        elif beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2 and n_open_trades < self.max_open_trades and all_sells:
+        elif beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2:
             trade = 'sell'
 
         else:

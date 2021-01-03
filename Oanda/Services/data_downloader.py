@@ -16,7 +16,7 @@ class DataDownloader:
     def __init__(self):
         # A list of currency pairs that we can download data for
         self.available_currency_pairs = ['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF', 'USD_CAD', 'AUD_USD', 'NZD_USD',
-                                         'EUR_GBP', 'EUR_CHF', 'GBP_JPY', 'GBP_CHF']
+                                         'EUR_GBP', 'EUR_CHF', 'GBP_JPY', 'GBP_CHF', 'EUR_JPY']
 
         # A list of valid candle types
         self.available_candle_types = ['bid', 'ask', 'mid']

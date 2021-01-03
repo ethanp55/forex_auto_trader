@@ -11,7 +11,7 @@ class CurrentDataSequence:
         self.current_sequences = {'EUR_USD': None, 'GBP_CHF': None, 'USD_CAD': None, 'AUD_USD': None}
         self.macd_current_sequences = {'EUR_USD': None, 'GBP_USD': None}
         self.kiss_current_sequences = {'AUD_USD': None}
-        self.beep_boop_current_sequences = {'GBP_USD': None}
+        self.beep_boop_current_sequences = {'GBP_USD': None, 'EUR_JPY': None, 'GBP_JPY': None}
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 
@@ -287,7 +287,7 @@ class CurrentDataSequence:
 
         data_downloader = DataDownloader()
 
-        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask'], 'H1', from_time, to_time)
+        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask', 'mid'], 'H1', from_time, to_time)
 
         if error_message is not None:
             print(error_message)
@@ -298,13 +298,12 @@ class CurrentDataSequence:
         for candle in candles:
             curr_date = candle.time
             curr_date = datetime.utcfromtimestamp(int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
-
-            row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c)]
+            row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(candle.ask.h), float(candle.ask.l), float(candle.ask.c), float(candle.mid.o), float(candle.mid.h), float(candle.mid.l), float(candle.mid.c)]
             np_data.append(row)
 
         np_data = np.array(np_data)
 
-        data_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close'])
+        data_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close'])
         data_sequence.dropna(inplace=True)
         data_sequence.reset_index(drop=True, inplace=True)
 

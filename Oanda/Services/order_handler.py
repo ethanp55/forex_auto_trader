@@ -8,7 +8,7 @@ A class for placing trades
 class OrderHandler(object):
 
     @staticmethod
-    def place_market_order(currency_pair, order_type, n_units, profit_price, stop_loss):
+    def place_market_order(currency_pair, order_type, n_units, profit_price, stop_loss, pips_to_risk, use_trailing_stop):
         # Add all of the needed arguments
         kwargs = {}
         kwargs['type'] = 'MARKET'
@@ -17,9 +17,12 @@ class OrderHandler(object):
         kwargs['timeInForce'] = 'FOK'
         kwargs['positionFill'] = 'DEFAULT'
         kwargs['takeProfitOnFill'] = {'price': str(profit_price), 'timeInForce': 'GTC'}
-        # kwargs['stopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
-        kwargs['stopLossOnFill'] = {'price': str(stop_loss), 'timeInForce': 'GTC'}
-        # kwargs['trailingStopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
+
+        if use_trailing_stop:
+            kwargs['trailingStopLossOnFill'] = {'distance': str(pips_to_risk), 'timeInForce': 'GTC'}
+
+        else:
+            kwargs['stopLossOnFill'] = {'price': str(stop_loss), 'timeInForce': 'GTC'}
 
         # Create the Oanda API context
         api_context = v20.Context(

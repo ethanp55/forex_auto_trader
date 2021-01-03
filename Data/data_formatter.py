@@ -164,15 +164,15 @@ class DataFormatter(object):
             highs = []
 
             for j in range(1, look_back + 1):
-                prev_bid_low, prev_bid_high = df.loc[df.index[i - j], ['Bid_Low', 'Bid_High']]
-                future_bid_low, future_bid_high = df.loc[df.index[i + j], ['Bid_Low', 'Bid_High']]
+                prev_bid_low, prev_bid_high = df.loc[df.index[i - j], ['Mid_Low', 'Mid_High']]
+                future_bid_low, future_bid_high = df.loc[df.index[i + j], ['Mid_Low', 'Mid_High']]
 
                 lows.append(prev_bid_low)
                 lows.append(future_bid_low)
                 highs.append(prev_bid_high)
                 highs.append(future_bid_high)
 
-            bid_low, bid_high = df.loc[df.index[i], ['Bid_Low', 'Bid_High']]
+            bid_low, bid_high = df.loc[df.index[i], ['Mid_Low', 'Mid_High']]
 
             if bid_low < min(lows):
                 return 1
@@ -187,7 +187,7 @@ class DataFormatter(object):
             return np.nan
 
     def _add_beep_boop(self, df, i):
-        macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Bid_Low', 'Bid_High']]
+        macdhist, ema50, ema200, bid_low, bid_high = df.loc[df.index[i], ['macdhist', 'ema50', 'ema200', 'Mid_Low', 'Mid_High']]
 
         if macdhist > 0 and bid_low > ema50:
             return 1
@@ -203,9 +203,9 @@ class DataFormatter(object):
         dates = df.iloc[df.shape[0] - 150:, 0]
         df.drop('Date', axis=1, inplace=True)
 
-        df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Bid_Close'])
-        df['ema200'] = talib.EMA(df['Bid_Close'], timeperiod=200)
-        df['ema50'] = talib.EMA(df['Bid_Close'], timeperiod=50)
+        df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
+        df['ema200'] = talib.EMA(df['Mid_Close'], timeperiod=200)
+        df['ema50'] = talib.EMA(df['Mid_Close'], timeperiod=50)
         df = df.astype(float)
 
         df.dropna(inplace=True)
