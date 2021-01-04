@@ -9,6 +9,7 @@ class OrderHandler(object):
 
     @staticmethod
     def place_market_order(currency_pair, order_type, n_units, profit_price, stop_loss, pips_to_risk, use_trailing_stop):
+        print(pips_to_risk)
         # Add all of the needed arguments
         kwargs = {}
         kwargs['type'] = 'MARKET'
