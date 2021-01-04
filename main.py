@@ -303,7 +303,8 @@ def main():
 
                     order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
                                                        round(stop_loss, beep_boop_rounding[currency_pair]),
-                                                       pips_to_risk, beep_boop_use_trailing_stop[currency_pair])
+                                                       round(pips_to_risk, beep_boop_rounding[currency_pair]),
+                                                       beep_boop_use_trailing_stop[currency_pair])
 
                     if not order_placed:
                         error_flag = True
