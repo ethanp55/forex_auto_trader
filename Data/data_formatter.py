@@ -210,7 +210,7 @@ class DataFormatter(object):
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
-        df = df.iloc[df.shape[0] - 150:, :]
+        df = df.iloc[df.shape[0] - 100:, :]
         df.reset_index(drop=True, inplace=True)
 
         df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
