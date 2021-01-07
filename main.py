@@ -403,7 +403,7 @@ def main():
         predictions = {}
 
         for currency_pair in gasf_data_vals:
-            pred = forex_cnn.predict(currency_pair, data_sequences[currency_pair])
+            pred = forex_cnn.predict(currency_pair, gasf_data_vals[currency_pair])
             predictions[currency_pair] = pred
 
         for currency_pair in predictions:
@@ -430,34 +430,34 @@ def main():
                 last_candle = candles[-1]
                 curr_bid_open = float(last_candle.bid.o)
                 curr_ask_open = float(last_candle.ask.o)
-                gain_risk_ratio = beep_boop_gain_risk_ratio[currency_pair]
-                pips_to_risk, stop_loss = _calculate_pips_to_risk(data_sequences[currency_pair], pred, beep_boop_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
+                gain_risk_ratio = cnn_gain_risk_ratio[currency_pair]
+                pips_to_risk, stop_loss = _calculate_pips_to_risk(price_data_vals[currency_pair], pred, cnn_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
 
-                if pips_to_risk is not None and pips_to_risk <= beep_boop_max_pips_to_risk[currency_pair]:
+                if pips_to_risk is not None and pips_to_risk <= cnn_max_pips_to_risk[currency_pair]:
                     print('----------------------------------')
                     print('-- PLACING NEW ORDER (BEEP BOOP) --')
                     print('------------ ' + str(currency_pair) + ' -------------')
                     print('----------------------------------\n')
 
-                    n_units_per_trade = beep_boop_n_units_per_trade[currency_pair]
+                    n_units_per_trade = cnn_n_units_per_trade[currency_pair]
 
                     if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), beep_boop_rounding[currency_pair])
+                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
 
                     else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), beep_boop_rounding[currency_pair])
+                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
 
                     print('Action: ' + str(pred) + ' for ' + str(currency_pair))
                     print('Profit price: ' + str(profit_price))
                     print('Stop loss price: ' + str(stop_loss))
                     print('Pips to risk: ' + str(pips_to_risk))
-                    print('Rounded pips to risk: ' + str(round(pips_to_risk, beep_boop_rounding[currency_pair])))
+                    print('Rounded pips to risk: ' + str(round(pips_to_risk, cnn_rounding[currency_pair])))
                     print()
 
                     order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
-                                                       round(stop_loss, beep_boop_rounding[currency_pair]),
-                                                       round(pips_to_risk, beep_boop_rounding[currency_pair]),
-                                                       beep_boop_use_trailing_stop[currency_pair])
+                                                       round(stop_loss, cnn_rounding[currency_pair]),
+                                                       round(pips_to_risk, cnn_rounding[currency_pair]),
+                                                       cnn_use_trailing_stop[currency_pair])
 
                     if not order_placed:
                         error_flag = True
