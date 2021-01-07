@@ -26,10 +26,12 @@ class BeepBoop(object):
         # print('bid_close1: ' + str(bid_close1))
         print()
 
-        if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1:
+        # if beep_boop4 == 1 and beep_boop3 == 1 and beep_boop2 == 1 and beep_boop1 == 1:
+        if beep_boop2 == 1 and beep_boop1 == 1:
             trade = 'buy'
 
-        elif beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2:
+        # elif beep_boop4 == 2 and beep_boop3 == 2 and beep_boop2 == 2 and beep_boop1 == 2:
+        elif beep_boop2 == 2 and beep_boop1 == 2:
             trade = 'sell'
 
         else:
