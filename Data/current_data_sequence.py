@@ -102,15 +102,6 @@ class CurrentDataSequence:
 
         return True
 
-    def get_sequence_for_pair(self, currency_pair):
-        return self.current_sequences[currency_pair]
-
-    def get_macd_sequence_for_pair(self, currency_pair):
-        return self.macd_current_sequences[currency_pair]
-
-    def get_kiss_sequence_for_pair(self, currency_pair):
-        return self.kiss_current_sequences[currency_pair]
-
     def get_beep_boop_sequence_for_pair(self, currency_pair):
         return self.beep_boop_current_sequences[currency_pair]
 
