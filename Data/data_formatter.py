@@ -2,6 +2,7 @@ import talib
 import pandas as pd
 import numpy as np
 from pickle import load
+from pyts.image import GramianAngularField
 
 
 class DataFormatter(object):
@@ -200,7 +201,7 @@ class DataFormatter(object):
 
     def format_beep_boop_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
-        dates = df.iloc[df.shape[0] - 150:, 0]
+        dates = df.iloc[df.shape[0] - 100:, 0]
         df.drop('Date', axis=1, inplace=True)
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
@@ -224,3 +225,54 @@ class DataFormatter(object):
         print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
+
+    def format_cnn_data(self, currency_pair, df, look_back_size=50):
+        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+        df['sin_hour'] = np.sin(2 * np.pi * df['Date'].dt.hour / 24)
+        df['cos_hour'] = np.cos(2 * np.pi * df['Date'].dt.hour / 24)
+        df['sin_day'] = np.sin(2 * np.pi * df['Date'].dt.day / 7)
+        df['cos_day'] = np.cos(2 * np.pi * df['Date'].dt.day / 7)
+        df['sin_month'] = np.sin(2 * np.pi * df['Date'].dt.month / 12)
+        df['cos_month'] = np.cos(2 * np.pi * df['Date'].dt.month / 12)
+        dates = df.iloc[df.shape[0] - look_back_size:, 0]
+        df.drop('Date', axis=1, inplace=True)
+
+        df['rsi'] = talib.RSI(df['Mid_Close'])
+        df['williams'] = talib.WILLR(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+        df['wma'] = talib.WMA(df['Mid_Close'])
+        df['ema1'] = talib.EMA(df['Mid_Close'])
+        df['ema2'] = talib.EMA(df['Mid_Close'], timeperiod=60)
+        df['sma1'] = talib.SMA(df['Mid_Close'])
+        df['sma2'] = talib.SMA(df['Mid_Close'], timeperiod=60)
+        df['tema'] = talib.TEMA(df['Mid_Close'])
+        df['cci'] = talib.CCI(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+        df['cmo'] = talib.CMO(df['Mid_Close'])
+        df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
+        df['ppo'] = talib.PPO(df['Mid_Close'])
+        df['roc'] = talib.ROC(df['Mid_Close'])
+        df = df.astype(float)
+
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df = df.iloc[df.shape[0] - 100:, :]
+        df.reset_index(drop=True, inplace=True)
+
+        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df = df.iloc[df.shape[0] - look_back_size:, :]
+        df.dropna(inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        price_data = df[['Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'fractal']]
+        df.drop(['Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close', 'fractal'], axis=1, inplace=True)
+        df.reset_index(drop=True, inplace=True)
+
+        gasf_transformer = GramianAngularField(method='summation')
+        gasf_data = gasf_transformer.transform(df)
+
+        print('Second to last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
+        print('Last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+        print('Data shape: ' + str(gasf_data.shape))
+
+        return gasf_data, price_data
