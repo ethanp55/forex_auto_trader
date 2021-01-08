@@ -69,7 +69,6 @@ class DataFormatter(object):
         df.reset_index(drop=True, inplace=True)
 
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
-        df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
         print(df.iloc[-1, :])
@@ -127,8 +126,6 @@ class DataFormatter(object):
 
         gasf_transformer = GramianAngularField(method='summation')
         gasf_data = gasf_transformer.transform(df)
-
-        print(price_data.iloc[-1, :])
 
         print('Second to last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
         print('Last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))

@@ -436,7 +436,7 @@ def main():
 
                 if pips_to_risk is not None and pips_to_risk <= cnn_max_pips_to_risk[currency_pair]:
                     print('----------------------------------')
-                    print('-- PLACING NEW ORDER (BEEP BOOP) --')
+                    print('-- PLACING NEW ORDER (CNN) --')
                     print('------------ ' + str(currency_pair) + ' -------------')
                     print('----------------------------------\n')
 
