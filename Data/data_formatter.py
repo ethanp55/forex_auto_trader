@@ -61,11 +61,18 @@ class DataFormatter(object):
         df.reset_index(drop=True, inplace=True)
 
         df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
+        last_two_rows = df.iloc[-2:, :]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
+
+        df = df.append(last_two_rows, ignore_index=True)
+        df.reset_index(drop=True, inplace=True)
+
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
+
+        print(df.iloc[-1, :])
 
         print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
         print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
@@ -73,8 +80,6 @@ class DataFormatter(object):
         return df
 
     def format_cnn_data(self, currency_pair, df, look_back_size=50):
-        print(df.iloc[-1, :])
-
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
         df['sin_hour'] = np.sin(2 * np.pi * df['Date'].dt.hour / 24)
         df['cos_hour'] = np.cos(2 * np.pi * df['Date'].dt.hour / 24)
@@ -106,10 +111,14 @@ class DataFormatter(object):
         df.reset_index(drop=True, inplace=True)
 
         df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
+        last_two_rows = df.iloc[-2:, :]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
+
+        df = df.append(last_two_rows, ignore_index=True)
+        df.reset_index(drop=True, inplace=True)
+
         df = df.iloc[df.shape[0] - look_back_size:, :]
-        df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
         price_data = df[['Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'fractal']]
@@ -118,6 +127,8 @@ class DataFormatter(object):
 
         gasf_transformer = GramianAngularField(method='summation')
         gasf_data = gasf_transformer.transform(df)
+
+        print(price_data.iloc[-1, :])
 
         print('Second to last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
         print('Last date for current cnn sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))

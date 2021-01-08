@@ -210,7 +210,7 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open, ask_open):
     print(current_data)
     pullback = None
-    i = current_data.shape[0] - 1
+    i = current_data.shape[0] - 3
 
     if trade_type == 'buy':
         while i >= 0:
