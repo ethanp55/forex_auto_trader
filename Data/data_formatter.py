@@ -71,8 +71,6 @@ class DataFormatter(object):
         df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
         df.reset_index(drop=True, inplace=True)
 
-        print(df.iloc[-1, :])
-
         print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
         print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
