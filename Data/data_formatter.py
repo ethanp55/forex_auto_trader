@@ -73,6 +73,8 @@ class DataFormatter(object):
         return df
 
     def format_cnn_data(self, currency_pair, df, look_back_size=50):
+        print(df.iloc[-1, :])
+
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
         df['sin_hour'] = np.sin(2 * np.pi * df['Date'].dt.hour / 24)
         df['cos_hour'] = np.cos(2 * np.pi * df['Date'].dt.hour / 24)
