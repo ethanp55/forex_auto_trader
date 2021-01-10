@@ -85,20 +85,21 @@ def _get_open_trades(dt):
             return False
 
         for trade in open_trades:
-            # Increment the number of open trades for the given pair
-            open_beep_boop_pairs[trade.instrument] += 1
+            if trade.instrument in open_beep_boop_pairs:
+                # Increment the number of open trades for the given pair
+                open_beep_boop_pairs[trade.instrument] += 1
 
-            # Increment the number of units (so that the next trade has a unique number of units in order to satisfy the
-            # FIFO requirement)
-            if abs(trade.currentUnits) >= beep_boop_n_units_per_trade[trade.instrument]:
-                beep_boop_n_units_per_trade[trade.instrument] = abs(trade.currentUnits) + 1
+                # Increment the number of units (so that the next trade has a unique number of units in order to satisfy the
+                # FIFO requirement)
+                if abs(trade.currentUnits) >= beep_boop_n_units_per_trade[trade.instrument]:
+                    beep_boop_n_units_per_trade[trade.instrument] = abs(trade.currentUnits) + 1
 
-            # Determine if all the trades for the pair are buys or sells
-            if trade.currentUnits < 0 and beep_boop_all_buys[trade.instrument]:
-                beep_boop_all_buys[trade.instrument] = False
+                # Determine if all the trades for the pair are buys or sells
+                if trade.currentUnits < 0 and beep_boop_all_buys[trade.instrument]:
+                    beep_boop_all_buys[trade.instrument] = False
 
-            if trade.currentUnits > 0 and beep_boop_all_sells[trade.instrument]:
-                beep_boop_all_sells[trade.instrument] = False
+                if trade.currentUnits > 0 and beep_boop_all_sells[trade.instrument]:
+                    beep_boop_all_sells[trade.instrument] = False
 
         return True
 
