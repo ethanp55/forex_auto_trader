@@ -8,7 +8,6 @@ import pytz as tz
 
 class CurrentDataSequence:
     def __init__(self):
-        # self.beep_boop_current_sequences = {'GBP_USD': None, 'EUR_JPY': None, 'GBP_JPY': None}
         self.beep_boop_current_sequences = {'GBP_USD': None}
         self.cnn_gasf_data = {'GBP_JPY': None}
         self.cnn_price_data = {'GBP_JPY': None}

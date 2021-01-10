@@ -5,39 +5,41 @@ from Data.current_data_sequence import CurrentDataSequence
 from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
 from Model.beep_boop import BeepBoop
-from Model.cnn import ForexCNN
+# from Model.cnn import ForexCNN
 import traceback
 
 weekend_day_nums = [4, 5, 6]
 
-# beep_boop_gain_risk_ratio = {'GBP_USD': 1.3, 'EUR_JPY': 1.7, 'GBP_JPY': 1.8}
-# beep_boop_pullback_cushion = {'GBP_USD': 0.0075, 'EUR_JPY': 0.6, 'GBP_JPY': 0.65}
-# beep_boop_n_units_per_trade = {'GBP_USD': 10000, 'EUR_JPY': 10000, 'GBP_JPY': 10000}
-# beep_boop_rounding = {'GBP_USD': 5, 'EUR_JPY': 3, 'GBP_JPY': 3}
-# beep_boop_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_JPY': 1, 'GBP_JPY': 1}
-# beep_boop_use_trailing_stop = {'GBP_USD': True, 'EUR_JPY': True, 'GBP_JPY': True}
-# open_beep_boop_pairs = {'GBP_USD': True, 'EUR_JPY': True, 'GBP_JPY': True}
-
-beep_boop_gain_risk_ratio = {'GBP_USD': 1.3}
-beep_boop_pullback_cushion = {'GBP_USD': 0.0075}
+beep_boop_gain_risk_ratio = {'GBP_USD': 1.8}
+beep_boop_pullback_cushion = {'GBP_USD': 0.0050}
 beep_boop_n_units_per_trade = {'GBP_USD': 10000}
 beep_boop_rounding = {'GBP_USD': 5}
 beep_boop_max_pips_to_risk = {'GBP_USD': 0.0100}
-beep_boop_use_trailing_stop = {'GBP_USD': True}
-open_beep_boop_pairs = {'GBP_USD': True}
+beep_boop_use_trailing_stop = {'GBP_USD': False}
+beep_boop_all_buys = {'GBP_USD': True}
+beep_boop_all_sells = {'GBP_USD': True}
+beep_boop_max_open_trades = {'GBP_USD': 10}
+open_beep_boop_pairs = {'GBP_USD': 0}
 
-cnn_gain_risk_ratio = {'GBP_JPY': 1.7}
-cnn_pullback_cushion = {'GBP_JPY': 0.05}
-cnn_n_units_per_trade = {'GBP_JPY': 10000}
-cnn_rounding = {'GBP_JPY': 3}
-cnn_max_pips_to_risk = {'GBP_JPY': 1}
-cnn_use_trailing_stop = {'GBP_JPY': False}
-open_cnn_pairs = {'GBP_JPY': True}
-forex_cnn = ForexCNN()
+# beep_boop_gain_risk_ratio = {'GBP_USD': 1.3}
+# beep_boop_pullback_cushion = {'GBP_USD': 0.0075}
+# beep_boop_n_units_per_trade = {'GBP_USD': 10000}
+# beep_boop_rounding = {'GBP_USD': 5}
+# beep_boop_max_pips_to_risk = {'GBP_USD': 0.0100}
+# beep_boop_use_trailing_stop = {'GBP_USD': True}
+# open_beep_boop_pairs = {'GBP_USD': True}
+#
+# cnn_gain_risk_ratio = {'GBP_JPY': 1.7}
+# cnn_pullback_cushion = {'GBP_JPY': 0.05}
+# cnn_n_units_per_trade = {'GBP_JPY': 10000}
+# cnn_rounding = {'GBP_JPY': 3}
+# cnn_max_pips_to_risk = {'GBP_JPY': 1}
+# cnn_use_trailing_stop = {'GBP_JPY': False}
+# open_cnn_pairs = {'GBP_JPY': True}
+# forex_cnn = ForexCNN()
 
 current_data_sequence = CurrentDataSequence()
 data_downloader = DataDownloader()
-open_trade_instruments = set()
 
 
 def _get_dt():
@@ -61,17 +63,16 @@ def _get_dt():
 
 def _get_open_trades(dt):
     try:
-        global open_trade_instruments
         global open_beep_boop_pairs
-        # global open_cnn_pairs
-
-        open_trade_instruments.clear()
+        global beep_boop_all_buys
+        global beep_boop_all_sells
+        global beep_boop_n_units_per_trade
 
         for currency_pair in open_beep_boop_pairs:
-            open_beep_boop_pairs[currency_pair] = True
-
-        for currency_pair in open_cnn_pairs:
-            open_cnn_pairs[currency_pair] = True
+            open_beep_boop_pairs[currency_pair] = 0
+            beep_boop_n_units_per_trade[currency_pair] = 10000
+            beep_boop_all_buys[currency_pair] = True
+            beep_boop_all_sells[currency_pair] = True
 
         open_trades, error_message = OrderHandler.get_open_trades()
 
@@ -83,14 +84,21 @@ def _get_open_trades(dt):
 
             return False
 
-        for order in open_trades:
-            open_trade_instruments.add(order.instrument)
+        for trade in open_trades:
+            # Increment the number of open trades for the given pair
+            open_beep_boop_pairs[trade.instrument] += 1
 
-        for currency_pair in open_beep_boop_pairs:
-            open_beep_boop_pairs[currency_pair] = currency_pair in open_trade_instruments
+            # Increment the number of units (so that the next trade has a unique number of units in order to satisfy the
+            # FIFO requirement)
+            if abs(trade.currentUnits) >= beep_boop_n_units_per_trade[trade.instrument]:
+                beep_boop_n_units_per_trade[trade.instrument] = abs(trade.currentUnits) + 1
 
-        for currency_pair in open_cnn_pairs:
-            open_cnn_pairs[currency_pair] = currency_pair in open_trade_instruments
+            # Determine if all the trades for the pair are buys or sells
+            if trade.currentUnits < 0 and beep_boop_all_buys[trade.instrument]:
+                beep_boop_all_buys[trade.instrument] = False
+
+            if trade.currentUnits > 0 and beep_boop_all_sells[trade.instrument]:
+                beep_boop_all_sells[trade.instrument] = False
 
         return True
 
@@ -266,9 +274,6 @@ def main():
     for currency_pair in open_beep_boop_pairs:
         print('Starting new session with beep boop open for ' + str(currency_pair) + ': ' + str(open_beep_boop_pairs[currency_pair]))
 
-    for currency_pair in open_cnn_pairs:
-        print('Starting new session with cnn open for ' + str(currency_pair) + ': ' + str(open_cnn_pairs[currency_pair]))
-
     while True:
         dt_h1 = _get_dt()
 
@@ -292,7 +297,7 @@ def main():
         data_sequences = {}
 
         for currency_pair in open_beep_boop_pairs:
-            if not open_beep_boop_pairs[currency_pair]:
+            if open_beep_boop_pairs[currency_pair] < beep_boop_max_open_trades[currency_pair]:
                 current_data_update_success = _update_beep_boop_current_data_sequence(dt_h1, currency_pair)
 
                 if not current_data_update_success:
@@ -313,7 +318,7 @@ def main():
         for currency_pair in predictions:
             pred = predictions[currency_pair]
 
-            if pred is not None:
+            if pred is not None and ((pred == 'buy' and beep_boop_all_buys[currency_pair]) or (pred == 'sell' and beep_boop_all_sells[currency_pair])):
                 most_recent_data = False
 
                 while not most_recent_data:
@@ -377,101 +382,101 @@ def main():
         # --------------------------------------------------------------------------------------------------------------
         # --------------------------------------------------------------------------------------------------------------
 
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------- CNN -----------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-
-        gasf_data_vals = {}
-        price_data_vals = {}
-
-        for currency_pair in open_cnn_pairs:
-            if not open_cnn_pairs[currency_pair]:
-                current_data_update_success = _update_cnn_current_data_sequence(dt_h1, currency_pair)
-
-                if not current_data_update_success:
-                    error_flag = True
-                    break
-
-                gasf_data, price_data = current_data_sequence.get_cnn_sequence_for_pair(currency_pair)
-
-                gasf_data_vals[currency_pair] = gasf_data
-                price_data_vals[currency_pair] = price_data
-
-        if error_flag:
-            continue
-
-        predictions = {}
-
-        for currency_pair in gasf_data_vals:
-            pred = forex_cnn.predict(currency_pair, gasf_data_vals[currency_pair])
-            predictions[currency_pair] = pred
-
-        for currency_pair in predictions:
-            pred = predictions[currency_pair]
-
-            if pred is not None:
-                most_recent_data = False
-
-                while not most_recent_data:
-                    most_recent_data = True
-                    candles = _get_current_data(dt_h1, currency_pair, ['bid', 'ask'], 'H1')
-
-                    if candles is None:
-                        error_flag = True
-                        break
-
-                    if candles[-1].complete:
-                        print('The current market data is not available yet: ' + str(candles[-1].time))
-                        most_recent_data = False
-
-                if error_flag:
-                    break
-
-                last_candle = candles[-1]
-                curr_bid_open = float(last_candle.bid.o)
-                curr_ask_open = float(last_candle.ask.o)
-                gain_risk_ratio = cnn_gain_risk_ratio[currency_pair]
-                pips_to_risk, stop_loss = _calculate_pips_to_risk(price_data_vals[currency_pair], pred, cnn_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
-
-                if pips_to_risk is not None and pips_to_risk <= cnn_max_pips_to_risk[currency_pair]:
-                    print('----------------------------------')
-                    print('-- PLACING NEW ORDER (CNN) --')
-                    print('------------ ' + str(currency_pair) + ' -------------')
-                    print('----------------------------------\n')
-
-                    n_units_per_trade = cnn_n_units_per_trade[currency_pair]
-
-                    if pred == 'buy':
-                        profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
-
-                    else:
-                        profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
-
-                    print('Action: ' + str(pred) + ' for ' + str(currency_pair))
-                    print('Profit price: ' + str(profit_price))
-                    print('Stop loss price: ' + str(stop_loss))
-                    print('Pips to risk: ' + str(pips_to_risk))
-                    print('Rounded pips to risk: ' + str(round(pips_to_risk, cnn_rounding[currency_pair])))
-                    print()
-
-                    order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
-                                                       round(stop_loss, cnn_rounding[currency_pair]),
-                                                       round(pips_to_risk, cnn_rounding[currency_pair]),
-                                                       cnn_use_trailing_stop[currency_pair])
-
-                    if not order_placed:
-                        error_flag = True
-                        break
-
-                else:
-                    print('Pips to risk is none or too high: ' + str(pips_to_risk))
-
-        if error_flag:
-            continue
-
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
-        # --------------------------------------------------------------------------------------------------------------
+        # # --------------------------------------------------------------------------------------------------------------
+        # # --------------------------------------------------- CNN -----------------------------------------------------
+        # # --------------------------------------------------------------------------------------------------------------
+        #
+        # gasf_data_vals = {}
+        # price_data_vals = {}
+        #
+        # for currency_pair in open_cnn_pairs:
+        #     if not open_cnn_pairs[currency_pair]:
+        #         current_data_update_success = _update_cnn_current_data_sequence(dt_h1, currency_pair)
+        #
+        #         if not current_data_update_success:
+        #             error_flag = True
+        #             break
+        #
+        #         gasf_data, price_data = current_data_sequence.get_cnn_sequence_for_pair(currency_pair)
+        #
+        #         gasf_data_vals[currency_pair] = gasf_data
+        #         price_data_vals[currency_pair] = price_data
+        #
+        # if error_flag:
+        #     continue
+        #
+        # predictions = {}
+        #
+        # for currency_pair in gasf_data_vals:
+        #     pred = forex_cnn.predict(currency_pair, gasf_data_vals[currency_pair])
+        #     predictions[currency_pair] = pred
+        #
+        # for currency_pair in predictions:
+        #     pred = predictions[currency_pair]
+        #
+        #     if pred is not None:
+        #         most_recent_data = False
+        #
+        #         while not most_recent_data:
+        #             most_recent_data = True
+        #             candles = _get_current_data(dt_h1, currency_pair, ['bid', 'ask'], 'H1')
+        #
+        #             if candles is None:
+        #                 error_flag = True
+        #                 break
+        #
+        #             if candles[-1].complete:
+        #                 print('The current market data is not available yet: ' + str(candles[-1].time))
+        #                 most_recent_data = False
+        #
+        #         if error_flag:
+        #             break
+        #
+        #         last_candle = candles[-1]
+        #         curr_bid_open = float(last_candle.bid.o)
+        #         curr_ask_open = float(last_candle.ask.o)
+        #         gain_risk_ratio = cnn_gain_risk_ratio[currency_pair]
+        #         pips_to_risk, stop_loss = _calculate_pips_to_risk(price_data_vals[currency_pair], pred, cnn_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
+        #
+        #         if pips_to_risk is not None and pips_to_risk <= cnn_max_pips_to_risk[currency_pair]:
+        #             print('----------------------------------')
+        #             print('-- PLACING NEW ORDER (CNN) --')
+        #             print('------------ ' + str(currency_pair) + ' -------------')
+        #             print('----------------------------------\n')
+        #
+        #             n_units_per_trade = cnn_n_units_per_trade[currency_pair]
+        #
+        #             if pred == 'buy':
+        #                 profit_price = round(curr_ask_open + (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
+        #
+        #             else:
+        #                 profit_price = round(curr_bid_open - (gain_risk_ratio * pips_to_risk), cnn_rounding[currency_pair])
+        #
+        #             print('Action: ' + str(pred) + ' for ' + str(currency_pair))
+        #             print('Profit price: ' + str(profit_price))
+        #             print('Stop loss price: ' + str(stop_loss))
+        #             print('Pips to risk: ' + str(pips_to_risk))
+        #             print('Rounded pips to risk: ' + str(round(pips_to_risk, cnn_rounding[currency_pair])))
+        #             print()
+        #
+        #             order_placed = _place_market_order(dt_h1, currency_pair, pred, n_units_per_trade, profit_price,
+        #                                                round(stop_loss, cnn_rounding[currency_pair]),
+        #                                                round(pips_to_risk, cnn_rounding[currency_pair]),
+        #                                                cnn_use_trailing_stop[currency_pair])
+        #
+        #             if not order_placed:
+        #                 error_flag = True
+        #                 break
+        #
+        #         else:
+        #             print('Pips to risk is none or too high: ' + str(pips_to_risk))
+        #
+        # if error_flag:
+        #     continue
+        #
+        # # --------------------------------------------------------------------------------------------------------------
+        # # --------------------------------------------------------------------------------------------------------------
+        # # --------------------------------------------------------------------------------------------------------------
 
         # Give Oanda a few seconds to process the trades
         time.sleep(15)
@@ -484,8 +489,8 @@ def main():
         for currency_pair in open_beep_boop_pairs:
             print('Open beep boop trade for ' + str(currency_pair) + ': ' + str(open_beep_boop_pairs[currency_pair]) + '\n')
 
-        for currency_pair in open_cnn_pairs:
-            print('Open cnn trade for ' + str(currency_pair) + ': ' + str(open_cnn_pairs[currency_pair]) + '\n')
+        # for currency_pair in open_cnn_pairs:
+        #     print('Open cnn trade for ' + str(currency_pair) + ': ' + str(open_cnn_pairs[currency_pair]) + '\n')
 
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_h1:
             time.sleep(1)
