@@ -493,6 +493,12 @@ def main():
         # for currency_pair in open_cnn_pairs:
         #     print('Open cnn trade for ' + str(currency_pair) + ': ' + str(open_cnn_pairs[currency_pair]) + '\n')
 
+        for currency_pair in beep_boop_all_buys:
+            print('All buys for ' + str(currency_pair) + ': ' + str(beep_boop_all_buys[currency_pair]))
+
+        for currency_pair in beep_boop_all_sells:
+            print('All sells for ' + str(currency_pair) + ': ' + str(beep_boop_all_sells[currency_pair]))
+
         while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_h1:
             time.sleep(1)
 
