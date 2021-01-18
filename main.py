@@ -18,7 +18,7 @@ beep_boop_max_pips_to_risk = {'GBP_USD': 0.0100}
 beep_boop_use_trailing_stop = {'GBP_USD': False}
 beep_boop_all_buys = {'GBP_USD': True}
 beep_boop_all_sells = {'GBP_USD': True}
-beep_boop_max_open_trades = {'GBP_USD': 10}
+beep_boop_max_open_trades = {'GBP_USD': 5}
 open_beep_boop_pairs = {'GBP_USD': 0}
 
 # beep_boop_gain_risk_ratio = {'GBP_USD': 1.3}
