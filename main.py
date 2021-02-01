@@ -263,8 +263,6 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 
 
 def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open, ask_open):
-    print(current_data)
-
     pullback = None
     i = current_data.shape[0] - 3
 
@@ -359,6 +357,7 @@ def main():
                     break
 
                 data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(currency_pair)
+                print(data_sequences[currency_pair])
 
         if error_flag:
             continue
@@ -378,6 +377,9 @@ def main():
                 stoch_counters[currency_pair] = 0
                 stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
 
+            print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
+            print('Stoch time frame for ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
+
         for currency_pair in data_sequences:
             pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])
             predictions[currency_pair] = pred
@@ -390,6 +392,8 @@ def main():
 
             if pred is not None and ((pred == 'buy' and stoch_macd_all_buys[currency_pair]) or (pred == 'sell' and stoch_macd_all_sells[currency_pair])):
                 stoch_macd_pullback_cushion[currency_pair] = np.random.choice(stoch_macd_possible_pullback_cushions, p=[0.20, 0.60, 0.20]) / 10000
+                print('Stoch pullback cushion for ' + str(currency_pair) + ': ' + str(stoch_macd_pullback_cushion[currency_pair]))
+
                 most_recent_data = False
 
                 while not most_recent_data:
