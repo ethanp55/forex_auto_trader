@@ -133,13 +133,13 @@ class DataFormatter(object):
 
     def format_stoch_macd_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
-        dates = df.iloc[df.shape[0] - 100:, 0]
-        df.drop('Date', axis=1, inplace=True)
+        # dates = df.iloc[df.shape[0] - 100:, 0]
+        # df.drop('Date', axis=1, inplace=True)
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
         df['ema200'] = talib.EMA(df['Mid_Close'], timeperiod=200)
         df['slowk'], df['slowd'] = talib.STOCH(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
-        df = df.astype(float)
+        # df = df.astype(float)
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
@@ -154,7 +154,9 @@ class DataFormatter(object):
         df = df.append(last_two_rows, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
 
-        print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
-        print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+        # print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
+        # print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
+        print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(df.loc[df.index[-2], 'Date']))
+        print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(df.loc[df.index[-1], 'Date']))
 
         return df

@@ -75,7 +75,9 @@ def _get_dt():
                 if new_utc_now.weekday() == 6 and new_utc_now.hour > 21:
                     break
 
-    dt_m15 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0) + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0)).strftime('%Y-%m-%d %H:%M:%S')
+    current_time.minute = current_time.minute - current_time.minute % 15
+    dt_m15 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_time.minute) + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
     return dt_m15
 
@@ -376,9 +378,6 @@ def main():
                 stoch_signals[currency_pair] = new_stoch_signal
                 stoch_counters[currency_pair] = 0
                 stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
-
-            print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
-            print('Stoch time frame for ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
 
         for currency_pair in data_sequences:
             pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])

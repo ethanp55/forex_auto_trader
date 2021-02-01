@@ -106,7 +106,8 @@ class CurrentDataSequence:
     def update_stoch_macd_current_data_sequence(self, currency_pair):
         hours = 2
 
-        current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=0) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
+        current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
+        current_time.minute = current_time.minute - current_time.minute % 15
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
 
         from_time = str(current_time - timedelta(hours=1000))
