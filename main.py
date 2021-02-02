@@ -13,9 +13,9 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.6}
-stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(49, 52)}
-stoch_macd_pullback_cushion = {'GBP_USD': 0.0050}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.9}
+stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(14, 17)}
+stoch_macd_pullback_cushion = {'GBP_USD': 0.0015}
 stoch_macd_n_units_per_trade = {'GBP_USD': 50000}
 stoch_macd_rounding = {'GBP_USD': 5}
 stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100}
@@ -25,7 +25,7 @@ stoch_macd_all_sells = {'GBP_USD': True}
 stoch_macd_max_open_trades = {'GBP_USD': 1}
 open_stoch_macd_pairs = {'GBP_USD': 0}
 stoch_signals = {'GBP_USD': None}
-stoch_possible_time_frames = {'GBP_USD': np.arange(7, 9)}
+stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12)}
 stoch_time_frames = {'GBP_USD': 7}
 stoch_counters = {'GBP_USD': 0}
 
@@ -265,7 +265,7 @@ def _place_market_order(dt, currency_pair, pred, n_units_per_trade, profit_price
 
 def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open, ask_open):
     pullback = None
-    i = current_data.shape[0] - 3
+    i = current_data.shape[0] - 4
 
     if trade_type == 'buy':
         while i >= 0:
@@ -350,20 +350,17 @@ def main():
         data_sequences = {}
 
         for currency_pair in open_stoch_macd_pairs:
-            if open_stoch_macd_pairs[currency_pair] < stoch_macd_max_open_trades[currency_pair]:
-                current_data_update_success = _update_stoch_macd_current_data_sequence(dt_m15, currency_pair)
+            current_data_update_success = _update_stoch_macd_current_data_sequence(dt_m15, currency_pair)
 
-                if not current_data_update_success:
-                    error_flag = True
-                    break
+            if not current_data_update_success:
+                error_flag = True
+                break
 
-                data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(currency_pair)
-                print(data_sequences[currency_pair])
+            data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(currency_pair)
+            print(data_sequences[currency_pair])
 
         if error_flag:
             continue
-
-        predictions = {}
 
         for currency_pair in stoch_signals:
             if stoch_counters[currency_pair] >= stoch_time_frames[currency_pair]:
@@ -383,9 +380,12 @@ def main():
             print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
             print('-------------------------------------------------------\n')
 
+        predictions = {}
+
         for currency_pair in data_sequences:
-            pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])
-            predictions[currency_pair] = pred
+            if open_stoch_macd_pairs[currency_pair] < stoch_macd_max_open_trades[currency_pair]:
+                pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])
+                predictions[currency_pair] = pred
 
         for currency_pair in stoch_counters:
             stoch_counters[currency_pair] += 1

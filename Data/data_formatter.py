@@ -143,12 +143,12 @@ class DataFormatter(object):
         df = df.iloc[df.shape[0] - 100:, :]
         df.reset_index(drop=True, inplace=True)
 
-        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
-        last_two_rows = df.iloc[-2:, :]
+        df['fractal'] = [self._add_fractal(df, i, look_back=3) for i in range(df.shape[0])]
+        last_three_rows = df.iloc[-3:, :]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        df = df.append(last_two_rows, ignore_index=True)
+        df = df.append(last_three_rows, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
 
         print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(df.loc[df.index[-2], 'Date']))
