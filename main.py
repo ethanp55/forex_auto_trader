@@ -421,6 +421,8 @@ def main():
                 pips_to_risk, stop_loss = _calculate_pips_to_risk(data_sequences[currency_pair], pred, stoch_macd_pullback_cushion[currency_pair], curr_bid_open, curr_ask_open)
 
                 if pips_to_risk is not None and pips_to_risk <= stoch_macd_max_pips_to_risk[currency_pair]:
+                    stoch_signals[currency_pair] = None
+
                     print('----------------------------------')
                     print('-- PLACING NEW ORDER (STOCH MACD) --')
                     print('------------ ' + str(currency_pair) + ' -------------')
