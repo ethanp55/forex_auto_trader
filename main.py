@@ -381,6 +381,7 @@ def main():
             print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
             print('Stoch time frame ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
             print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
+            print('-------------------------------------------------------\n')
 
         for currency_pair in data_sequences:
             pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])
