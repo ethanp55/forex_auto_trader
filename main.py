@@ -75,9 +75,8 @@ def _get_dt():
                 if new_utc_now.weekday() == 6 and new_utc_now.hour > 21:
                     break
 
-    current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0)).strftime('%Y-%m-%d %H:%M:%S')
-    current_time.minute = current_time.minute - current_time.minute % 15
-    dt_m15 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_time.minute) + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    current_minutes = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0)).minute
+    dt_m15 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_minutes - current_minutes % 15) + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
     return dt_m15
 
