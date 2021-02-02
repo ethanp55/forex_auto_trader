@@ -378,6 +378,10 @@ def main():
                 stoch_counters[currency_pair] = 0
                 stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
 
+            print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
+            print('Stoch time frame ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
+            print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
+
         for currency_pair in data_sequences:
             pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_signals[currency_pair])
             predictions[currency_pair] = pred

@@ -25,7 +25,4 @@ class StochasticCrossover(object):
         else:
             stoch_signal = None
 
-        print('Stoch signal: ' + str(stoch_signal))
-        print('-------------------------------------------------------\n')
-
         return stoch_signal
