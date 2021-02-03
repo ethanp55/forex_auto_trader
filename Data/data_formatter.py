@@ -153,6 +153,4 @@ class DataFormatter(object):
         df = df.append(last_three_rows, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
 
-        print(df.dtypes)
-
         return df

@@ -13,21 +13,21 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.9}
-stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(14, 17)}
-stoch_macd_pullback_cushion = {'GBP_USD': 0.0015}
-stoch_macd_n_units_per_trade = {'GBP_USD': 50000}
-stoch_macd_rounding = {'GBP_USD': 5}
-stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100}
-stoch_macd_use_trailing_stop = {'GBP_USD': False}
-stoch_macd_all_buys = {'GBP_USD': True}
-stoch_macd_all_sells = {'GBP_USD': True}
-stoch_macd_max_open_trades = {'GBP_USD': 1}
-open_stoch_macd_pairs = {'GBP_USD': 0}
-stoch_signals = {'GBP_USD': None}
-stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12)}
-stoch_time_frames = {'GBP_USD': 7}
-stoch_counters = {'GBP_USD': 0}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.9, 'EUR_USD': 1.2}
+stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(14, 17), 'EUR_USD': np.arange(19, 22)}
+stoch_macd_pullback_cushion = {'GBP_USD': 0.0015, 'EUR_USD': 0.0020}
+stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000}
+stoch_macd_rounding = {'GBP_USD': 5, 'EUR_USD': 5}
+stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_USD': 0.0100}
+stoch_macd_use_trailing_stop = {'GBP_USD': False, 'EUR_USD': False}
+stoch_macd_all_buys = {'GBP_USD': True, 'EUR_USD': True}
+stoch_macd_all_sells = {'GBP_USD': True, 'EUR_USD': True}
+stoch_macd_max_open_trades = {'GBP_USD': 1, 'EUR_USD': 1}
+open_stoch_macd_pairs = {'GBP_USD': 0, 'EUR_USD': 0}
+stoch_signals = {'GBP_USD': None, 'EUR_USD': None}
+stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(10, 12)}
+stoch_time_frames = {'GBP_USD': 10, 'EUR_USD': 10}
+stoch_counters = {'GBP_USD': 0, 'EUR_USD': 0}
 
 # beep_boop_gain_risk_ratio = {'GBP_USD': 1.8}
 # beep_boop_pullback_cushion = {'GBP_USD': 0.0050}

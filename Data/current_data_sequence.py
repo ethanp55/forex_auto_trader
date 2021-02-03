@@ -11,7 +11,7 @@ class CurrentDataSequence:
         self.beep_boop_current_sequences = {'GBP_USD': None}
         self.cnn_gasf_data = {'GBP_JPY': None}
         self.cnn_price_data = {'GBP_JPY': None}
-        self.stoch_macd_current_sequences = {'GBP_USD': None}
+        self.stoch_macd_current_sequences = {'GBP_USD': None, 'EUR_USD': None}
         self.min_sequence_length = 1000
         self.data_formatter = DataFormatter()
 
