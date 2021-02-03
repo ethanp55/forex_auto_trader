@@ -377,11 +377,6 @@ def main():
                 stoch_counters[currency_pair] = 0
                 stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
 
-            print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
-            print('Stoch time frame ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
-            print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
-            print('-------------------------------------------------------\n')
-
         predictions = {}
 
         for currency_pair in data_sequences:
@@ -391,6 +386,11 @@ def main():
 
         for currency_pair in stoch_counters:
             stoch_counters[currency_pair] += 1
+
+            print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
+            print('Stoch time frame ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
+            print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
+            print('-------------------------------------------------------\n')
 
         for currency_pair in predictions:
             pred = predictions[currency_pair]
