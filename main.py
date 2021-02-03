@@ -396,7 +396,7 @@ def main():
             pred = predictions[currency_pair]
 
             if pred is not None and ((pred == 'buy' and stoch_macd_all_buys[currency_pair]) or (pred == 'sell' and stoch_macd_all_sells[currency_pair])):
-                stoch_macd_pullback_cushion[currency_pair] = np.random.choice(stoch_macd_possible_pullback_cushions, p=[0.20, 0.60, 0.20]) / 10000
+                stoch_macd_pullback_cushion[currency_pair] = np.random.choice(stoch_macd_possible_pullback_cushions[currency_pair], p=[0.20, 0.60, 0.20]) / 10000
                 print('Stoch pullback cushion for ' + str(currency_pair) + ': ' + str(stoch_macd_pullback_cushion[currency_pair]))
 
                 most_recent_data = False
