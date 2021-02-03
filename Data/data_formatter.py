@@ -137,6 +137,8 @@ class DataFormatter(object):
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
         df['ema200'] = talib.EMA(df['Mid_Close'], timeperiod=200)
         df['slowk'], df['slowd'] = talib.STOCH(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+        cols = df.columns
+        df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
@@ -150,8 +152,5 @@ class DataFormatter(object):
 
         df = df.append(last_three_rows, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
-
-        print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(df.loc[df.index[-2], 'Date']))
-        print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(df.loc[df.index[-1], 'Date']))
 
         return df

@@ -357,7 +357,9 @@ def main():
                 break
 
             data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(currency_pair)
+            print()
             print(data_sequences[currency_pair])
+            print()
 
         if error_flag:
             continue
