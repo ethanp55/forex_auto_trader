@@ -370,7 +370,7 @@ def main():
             #     stoch_counters[currency_pair] = 0
             #     stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
 
-            new_stoch_signal, new_stoch_counter = StochasticCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_time_frames[currency_pair])
+            new_stoch_signal = StochasticCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_time_frames[currency_pair])
 
             # if new_stoch_signal is not None:
             #     stoch_signals[currency_pair] = new_stoch_signal
