@@ -3,26 +3,22 @@
 class StochasticCrossover(object):
 
     @staticmethod
-    def predict(currency_pair, current_data):
-        slowk1 = current_data.loc[current_data.index[-1], 'slowk']
-        slowd1 = current_data.loc[current_data.index[-1], 'slowd']
-        slowk2 = current_data.loc[current_data.index[-2], 'slowk']
-        slowd2 = current_data.loc[current_data.index[-2], 'slowd']
+    def predict(currency_pair, current_data, time_window):
+        stoch_signal = None
+        counter = None
 
-        print('New stochastic data for: ' + str(currency_pair))
-        print('slowk1: ' + str(slowk1))
-        print('slowd1: ' + str(slowd1))
-        print('slowk2: ' + str(slowk2))
-        print('slowd2: ' + str(slowd2))
-        print()
+        for i in range(current_data.shape[0] - time_window - 1, current_data.shape[0]):
+            slowk1 = current_data.loc[current_data.index[i], 'slowk']
+            slowd1 = current_data.loc[current_data.index[i], 'slowd']
+            slowk2 = current_data.loc[current_data.index[i - 1], 'slowk']
+            slowd2 = current_data.loc[current_data.index[i - 1], 'slowd']
 
-        if slowk2 < slowd2 and slowk1 > slowd1 and max([20, slowk2, slowd2, slowk1, slowd1]) == 20:
-            stoch_signal = 'buy'
+            if slowk2 < slowd2 and slowk1 > slowd1 and max([20, slowk2, slowd2, slowk1, slowd1]) == 20:
+                stoch_signal = 'buy'
+                counter = current_data.shape[0] - i - 1
 
-        elif slowk2 > slowd2 and slowk1 < slowd1 and min([80, slowk2, slowd2, slowk1, slowd1]) == 80:
-            stoch_signal = 'sell'
+            elif slowk2 > slowd2 and slowk1 < slowd1 and min([80, slowk2, slowd2, slowk1, slowd1]) == 80:
+                stoch_signal = 'sell'
+                counter = current_data.shape[0] - i - 1
 
-        else:
-            stoch_signal = None
-
-        return stoch_signal
+        return stoch_signal, counter
