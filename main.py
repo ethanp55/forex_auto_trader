@@ -13,20 +13,20 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.6, 'EUR_USD': 1.7, 'NZD_USD': 1.9}
-stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37), 'EUR_USD': np.arange(29, 32), 'NZD_USD': np.arange(24, 27)}
-stoch_macd_pullback_cushion = {'GBP_USD': 0.0035, 'EUR_USD': 0.0030, 'NZD_USD': 0.0025}
-stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000, 'NZD_USD': 50000}
-stoch_macd_rounding = {'GBP_USD': 5, 'EUR_USD': 5, 'NZD_USD': 5}
-stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_USD': 0.0100, 'NZD_USD': 0.0100}
-stoch_macd_use_trailing_stop = {'GBP_USD': False, 'EUR_USD': False, 'NZD_USD': False}
-stoch_macd_all_buys = {'GBP_USD': True, 'EUR_USD': True, 'NZD_USD': True}
-stoch_macd_all_sells = {'GBP_USD': True, 'EUR_USD': True, 'NZD_USD': True}
-stoch_macd_max_open_trades = {'GBP_USD': 1, 'EUR_USD': 1, 'NZD_USD': 1}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.6, 'EUR_USD': 1.7}
+stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37), 'EUR_USD': np.arange(29, 32)}
+stoch_macd_pullback_cushion = {'GBP_USD': 0.0035, 'EUR_USD': 0.0030}
+stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000}
+stoch_macd_rounding = {'GBP_USD': 5, 'EUR_USD': 5}
+stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_USD': 0.0100}
+stoch_macd_use_trailing_stop = {'GBP_USD': False, 'EUR_USD': False}
+stoch_macd_all_buys = {'GBP_USD': True, 'EUR_USD': True}
+stoch_macd_all_sells = {'GBP_USD': True, 'EUR_USD': True}
+stoch_macd_max_open_trades = {'GBP_USD': 1, 'EUR_USD': 1}
 open_stoch_macd_pairs = {'GBP_USD': 0, 'EUR_USD': 0}
-stoch_signals = {'GBP_USD': None, 'EUR_USD': None, 'NZD_USD': None}
-stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(6, 8), 'NZD_USD': np.arange(10, 12)}
-stoch_time_frames = {'GBP_USD': 10, 'EUR_USD': 10, 'NZD_USD': 10}
+stoch_signals = {'GBP_USD': None, 'EUR_USD': None}
+stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(6, 8)}
+stoch_time_frames = {'GBP_USD': 10, 'EUR_USD': 6}
 # stoch_counters = {'GBP_USD': 0, 'EUR_USD': 0, 'NZD_USD': 0}
 
 # beep_boop_gain_risk_ratio = {'GBP_USD': 1.8}
