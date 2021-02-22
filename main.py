@@ -13,9 +13,9 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.9, 'EUR_USD': 1.2, 'NZD_USD': 1.9}
-stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(14, 17), 'EUR_USD': np.arange(19, 22), 'NZD_USD': np.arange(24, 27)}
-stoch_macd_pullback_cushion = {'GBP_USD': 0.0015, 'EUR_USD': 0.0020, 'NZD_USD': 0.0025}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.6, 'EUR_USD': 1.7, 'NZD_USD': 1.9}
+stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37), 'EUR_USD': np.arange(29, 32), 'NZD_USD': np.arange(24, 27)}
+stoch_macd_pullback_cushion = {'GBP_USD': 0.0035, 'EUR_USD': 0.0030, 'NZD_USD': 0.0025}
 stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000, 'NZD_USD': 50000}
 stoch_macd_rounding = {'GBP_USD': 5, 'EUR_USD': 5, 'NZD_USD': 5}
 stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_USD': 0.0100, 'NZD_USD': 0.0100}
@@ -23,9 +23,9 @@ stoch_macd_use_trailing_stop = {'GBP_USD': False, 'EUR_USD': False, 'NZD_USD': F
 stoch_macd_all_buys = {'GBP_USD': True, 'EUR_USD': True, 'NZD_USD': True}
 stoch_macd_all_sells = {'GBP_USD': True, 'EUR_USD': True, 'NZD_USD': True}
 stoch_macd_max_open_trades = {'GBP_USD': 1, 'EUR_USD': 1, 'NZD_USD': 1}
-open_stoch_macd_pairs = {'GBP_USD': 0, 'EUR_USD': 0, 'NZD_USD': 0}
+open_stoch_macd_pairs = {'GBP_USD': 0, 'EUR_USD': 0}
 stoch_signals = {'GBP_USD': None, 'EUR_USD': None, 'NZD_USD': None}
-stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(10, 12), 'NZD_USD': np.arange(10, 12)}
+stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(6, 8), 'NZD_USD': np.arange(10, 12)}
 stoch_time_frames = {'GBP_USD': 10, 'EUR_USD': 10, 'NZD_USD': 10}
 # stoch_counters = {'GBP_USD': 0, 'EUR_USD': 0, 'NZD_USD': 0}
 
@@ -76,9 +76,9 @@ def _get_dt():
                     break
 
     current_minutes = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0)).minute
-    dt_m15 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_minutes - current_minutes % 15) + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    dt_m5 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_minutes - current_minutes % 5) + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
-    return dt_m15
+    return dt_m5
 
 
 def _get_open_trades(dt):
@@ -317,9 +317,9 @@ def main():
     global stoch_time_frames
     global stoch_macd_pullback_cushion
 
-    dt_m15 = _get_dt()
+    dt_m5 = _get_dt()
 
-    open_trades_success = _get_open_trades(dt_m15)
+    open_trades_success = _get_open_trades(dt_m5)
 
     if not open_trades_success:
         main()
@@ -328,17 +328,17 @@ def main():
         print('Starting new session with stoch macd open for ' + str(currency_pair) + ': ' + str(open_stoch_macd_pairs[currency_pair]))
 
     while True:
-        dt_m15 = _get_dt()
+        dt_m5 = _get_dt()
 
         error_flag = False
 
         print('\n---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')
         print('---------------------------------------------------------------------------------')
-        print(dt_m15)
+        print(dt_m5)
         print()
 
-        open_trades_success = _get_open_trades(dt_m15)
+        open_trades_success = _get_open_trades(dt_m5)
 
         if not open_trades_success:
             continue
@@ -350,7 +350,7 @@ def main():
         data_sequences = {}
 
         for currency_pair in open_stoch_macd_pairs:
-            current_data_update_success = _update_stoch_macd_current_data_sequence(dt_m15, currency_pair)
+            current_data_update_success = _update_stoch_macd_current_data_sequence(dt_m5, currency_pair)
 
             if not current_data_update_success:
                 error_flag = True
@@ -407,7 +407,7 @@ def main():
 
                 while not most_recent_data:
                     most_recent_data = True
-                    candles = _get_current_data(dt_m15, currency_pair, ['bid', 'ask'], 'M15')
+                    candles = _get_current_data(dt_m5, currency_pair, ['bid', 'ask'], 'M5')
 
                     if candles is None:
                         error_flag = True
@@ -449,7 +449,7 @@ def main():
                     print('Rounded pips to risk: ' + str(round(pips_to_risk, stoch_macd_rounding[currency_pair])))
                     print()
 
-                    order_placed = _place_market_order(dt_m15, currency_pair, pred, n_units_per_trade, profit_price,
+                    order_placed = _place_market_order(dt_m5, currency_pair, pred, n_units_per_trade, profit_price,
                                                        round(stop_loss, stoch_macd_rounding[currency_pair]),
                                                        round(pips_to_risk, stoch_macd_rounding[currency_pair]),
                                                        stoch_macd_use_trailing_stop[currency_pair])
@@ -476,7 +476,7 @@ def main():
         #
         # for currency_pair in open_stoch_macd_pairs:
         #     if open_stoch_macd_pairs[currency_pair] < stoch_macd_max_open_trades[currency_pair]:
-        #         current_data_update_success = _update_beep_boop_current_data_sequence(dt_m15, currency_pair)
+        #         current_data_update_success = _update_beep_boop_current_data_sequence(dt_m5, currency_pair)
         #
         #         if not current_data_update_success:
         #             error_flag = True
@@ -501,7 +501,7 @@ def main():
         #
         #         while not most_recent_data:
         #             most_recent_data = True
-        #             candles = _get_current_data(dt_m15, currency_pair, ['bid', 'ask'], 'H1')
+        #             candles = _get_current_data(dt_m5, currency_pair, ['bid', 'ask'], 'H1')
         #
         #             if candles is None:
         #                 error_flag = True
@@ -541,7 +541,7 @@ def main():
         #             print('Rounded pips to risk: ' + str(round(pips_to_risk, stoch_macd_rounding[currency_pair])))
         #             print()
         #
-        #             order_placed = _place_market_order(dt_m15, currency_pair, pred, n_units_per_trade, profit_price,
+        #             order_placed = _place_market_order(dt_m5, currency_pair, pred, n_units_per_trade, profit_price,
         #                                                round(stop_loss, stoch_macd_rounding[currency_pair]),
         #                                                round(pips_to_risk, stoch_macd_rounding[currency_pair]),
         #                                                stoch_macd_use_trailing_stop[currency_pair])
@@ -569,7 +569,7 @@ def main():
         #
         # for currency_pair in open_cnn_pairs:
         #     if not open_cnn_pairs[currency_pair]:
-        #         current_data_update_success = _update_cnn_current_data_sequence(dt_m15, currency_pair)
+        #         current_data_update_success = _update_cnn_current_data_sequence(dt_m5, currency_pair)
         #
         #         if not current_data_update_success:
         #             error_flag = True
@@ -597,7 +597,7 @@ def main():
         #
         #         while not most_recent_data:
         #             most_recent_data = True
-        #             candles = _get_current_data(dt_m15, currency_pair, ['bid', 'ask'], 'H1')
+        #             candles = _get_current_data(dt_m5, currency_pair, ['bid', 'ask'], 'H1')
         #
         #             if candles is None:
         #                 error_flag = True
@@ -637,7 +637,7 @@ def main():
         #             print('Rounded pips to risk: ' + str(round(pips_to_risk, cnn_rounding[currency_pair])))
         #             print()
         #
-        #             order_placed = _place_market_order(dt_m15, currency_pair, pred, n_units_per_trade, profit_price,
+        #             order_placed = _place_market_order(dt_m5, currency_pair, pred, n_units_per_trade, profit_price,
         #                                                round(stop_loss, cnn_rounding[currency_pair]),
         #                                                round(pips_to_risk, cnn_rounding[currency_pair]),
         #                                                cnn_use_trailing_stop[currency_pair])
@@ -659,7 +659,7 @@ def main():
         # Give Oanda a few seconds to process the trades
         time.sleep(15)
 
-        open_trades_success = _get_open_trades(dt_m15)
+        open_trades_success = _get_open_trades(dt_m5)
 
         if not open_trades_success:
             continue
@@ -676,7 +676,7 @@ def main():
         for currency_pair in stoch_macd_all_sells:
             print('All sells for ' + str(currency_pair) + ': ' + str(stoch_macd_all_sells[currency_pair]))
 
-        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_m15:
+        while datetime.strptime((datetime.now(tz=tz.timezone('America/New_York'))).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S') < dt_m5:
             time.sleep(1)
 
         print('---------------------------------------------------------------------------------')
