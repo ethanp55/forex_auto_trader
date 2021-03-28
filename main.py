@@ -13,7 +13,7 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.6, 'EUR_USD': 1.7}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.5, 'EUR_USD': 1.7}
 stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37), 'EUR_USD': np.arange(29, 32)}
 stoch_macd_pullback_cushion = {'GBP_USD': 0.0035, 'EUR_USD': 0.0030}
 stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000}
@@ -272,7 +272,7 @@ def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open
             curr_fractal = current_data.loc[current_data.index[i], 'fractal']
 
             if curr_fractal == 1:
-                pullback = current_data.loc[current_data.index[i], 'Ask_Low']
+                pullback = current_data.loc[current_data.index[i], 'Bid_Low']
                 break
 
             i -= 1
@@ -282,7 +282,7 @@ def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open
             curr_fractal = current_data.loc[current_data.index[i], 'fractal']
 
             if curr_fractal == 2:
-                pullback = current_data.loc[current_data.index[i], 'Bid_High']
+                pullback = current_data.loc[current_data.index[i], 'Ask_High']
                 break
 
             i -= 1
