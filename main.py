@@ -13,21 +13,20 @@ import numpy as np
 
 weekend_day_nums = [4, 5, 6]
 
-stoch_macd_gain_risk_ratio = {'GBP_USD': 1.5, 'EUR_USD': 1.7}
-stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37), 'EUR_USD': np.arange(29, 32)}
-stoch_macd_pullback_cushion = {'GBP_USD': 0.0035, 'EUR_USD': 0.0030}
-stoch_macd_n_units_per_trade = {'GBP_USD': 50000, 'EUR_USD': 50000}
-stoch_macd_rounding = {'GBP_USD': 5, 'EUR_USD': 5}
-stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100, 'EUR_USD': 0.0100}
-stoch_macd_use_trailing_stop = {'GBP_USD': False, 'EUR_USD': False}
-stoch_macd_all_buys = {'GBP_USD': True, 'EUR_USD': True}
-stoch_macd_all_sells = {'GBP_USD': True, 'EUR_USD': True}
-stoch_macd_max_open_trades = {'GBP_USD': 1, 'EUR_USD': 1}
-open_stoch_macd_pairs = {'GBP_USD': 0, 'EUR_USD': 0}
-stoch_signals = {'GBP_USD': None, 'EUR_USD': None}
-stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12), 'EUR_USD': np.arange(6, 8)}
-stoch_time_frames = {'GBP_USD': 10, 'EUR_USD': 6}
-# stoch_counters = {'GBP_USD': 0, 'EUR_USD': 0, 'NZD_USD': 0}
+stoch_macd_gain_risk_ratio = {'GBP_USD': 1.5}
+stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37)}
+stoch_macd_pullback_cushion = {'GBP_USD': 0.0035}
+stoch_macd_n_units_per_trade = {'GBP_USD': 10000}
+stoch_macd_rounding = {'GBP_USD': 5}
+stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100}
+stoch_macd_use_trailing_stop = {'GBP_USD': False}
+stoch_macd_all_buys = {'GBP_USD': True}
+stoch_macd_all_sells = {'GBP_USD': True}
+stoch_macd_max_open_trades = {'GBP_USD': 1}
+open_stoch_macd_pairs = {'GBP_USD': 0}
+stoch_signals = {'GBP_USD': None}
+stoch_possible_time_frames = {'GBP_USD': np.arange(10, 12)}
+stoch_time_frames = {'GBP_USD': 10}
 
 # beep_boop_gain_risk_ratio = {'GBP_USD': 1.8}
 # beep_boop_pullback_cushion = {'GBP_USD': 0.0050}
@@ -313,7 +312,6 @@ def _calculate_pips_to_risk(current_data, trade_type, pullback_cushion, bid_open
 
 def main():
     global stoch_signals
-    # global stoch_counters
     global stoch_time_frames
     global stoch_macd_pullback_cushion
 
@@ -365,17 +363,7 @@ def main():
             continue
 
         for currency_pair in stoch_signals:
-            # if stoch_counters[currency_pair] >= stoch_time_frames[currency_pair]:
-            #     stoch_signals[currency_pair] = None
-            #     stoch_counters[currency_pair] = 0
-            #     stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
-
             new_stoch_signal = StochasticCrossover.predict(currency_pair, data_sequences[currency_pair], stoch_time_frames[currency_pair])
-
-            # if new_stoch_signal is not None:
-            #     stoch_signals[currency_pair] = new_stoch_signal
-            #     # stoch_counters[currency_pair] = 0
-            #     stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
 
             stoch_signals[currency_pair] = new_stoch_signal
             stoch_time_frames[currency_pair] = np.random.choice(stoch_possible_time_frames[currency_pair], p=[0.70, 0.30])
@@ -388,12 +376,8 @@ def main():
                 predictions[currency_pair] = pred
 
         for currency_pair in stoch_time_frames:
-        # for currency_pair in stoch_counters:
-            # stoch_counters[currency_pair] += 1
-
             print('Stoch signal for ' + str(currency_pair) + ': ' + str(stoch_signals[currency_pair]))
             print('Stoch time frame ' + str(currency_pair) + ': ' + str(stoch_time_frames[currency_pair]))
-            # print('Stoch counter for ' + str(currency_pair) + ': ' + str(stoch_counters[currency_pair]))
             print('-------------------------------------------------------\n')
 
         for currency_pair in predictions:
