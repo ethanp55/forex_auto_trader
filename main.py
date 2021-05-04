@@ -89,7 +89,7 @@ def _get_open_trades(dt):
 
         for currency_pair in open_stoch_macd_pairs:
             open_stoch_macd_pairs[currency_pair] = 0
-            stoch_macd_n_units_per_trade[currency_pair] = 50000
+            stoch_macd_n_units_per_trade[currency_pair] = 10000
             stoch_macd_all_buys[currency_pair] = True
             stoch_macd_all_sells[currency_pair] = True
 
