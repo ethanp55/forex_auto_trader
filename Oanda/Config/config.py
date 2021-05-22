@@ -6,7 +6,6 @@ config_vars = {
     'port': environ['OANDA_PORT'],
     'ssl': environ['SSL'],
     'api_token': environ['API_TOKEN'],
-    'username': environ['USER_NAME'],
     'date_format': environ['DATE_FORMAT'],
     'time_zone': environ['TIME_ZONE'],
     'account': environ['ACCOUNT']
@@ -34,10 +33,6 @@ class Config(object):
     @staticmethod
     def get_api_token():
         return config_vars['api_token']
-
-    @staticmethod
-    def get_username():
-        return config_vars['username']
 
     @staticmethod
     def get_date_format():
