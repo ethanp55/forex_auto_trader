@@ -16,7 +16,7 @@ weekend_day_nums = [4, 5, 6]
 stoch_macd_gain_risk_ratio = {'GBP_USD': 1.5}
 stoch_macd_possible_pullback_cushions = {'GBP_USD': np.arange(34, 37)}
 stoch_macd_pullback_cushion = {'GBP_USD': 0.0035}
-stoch_macd_n_units_per_trade = {'GBP_USD': 10000}
+stoch_macd_n_units_per_trade = {'GBP_USD': 1000}
 stoch_macd_rounding = {'GBP_USD': 5}
 stoch_macd_max_pips_to_risk = {'GBP_USD': 0.0100}
 stoch_macd_use_trailing_stop = {'GBP_USD': False}
@@ -89,7 +89,7 @@ def _get_open_trades(dt):
 
         for currency_pair in open_stoch_macd_pairs:
             open_stoch_macd_pairs[currency_pair] = 0
-            stoch_macd_n_units_per_trade[currency_pair] = 10000
+            stoch_macd_n_units_per_trade[currency_pair] = 1000
             stoch_macd_all_buys[currency_pair] = True
             stoch_macd_all_sells[currency_pair] = True
 
