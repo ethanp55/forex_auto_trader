@@ -56,3 +56,24 @@ class OrderHandler(object):
             return None, str(response) + '\n' + str(response.body)
 
         return response.body['trades'], None
+
+    @staticmethod
+    def update_trade_stop_loss(trade_id, new_stop_loss_price):
+        kwargs = {}
+        kwargs['stopLoss'] = {'price': new_stop_loss_price}
+
+        api_context = v20.Context(
+            Config.get_host_name(),
+            Config.get_port(),
+            Config.get_ssl(),
+            application="sample_code",
+            token=Config.get_api_token(),
+            datetime_format=Config.get_date_format()
+        )
+
+        response = api_context.trade.set_dependent_orders(Config.get_account(), trade_id, **kwargs)
+
+        if response.status != 200:
+            return str(response) + '\n' + str(response.body)
+
+        return None
