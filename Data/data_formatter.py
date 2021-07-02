@@ -47,32 +47,30 @@ class DataFormatter(object):
 
     def format_beep_boop_data(self, currency_pair, df):
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
-        dates = df.iloc[df.shape[0] - 100:, 0]
-        df.drop('Date', axis=1, inplace=True)
 
         df['macd'], df['macdsignal'], df['macdhist'] = talib.MACD(df['Mid_Close'])
         df['ema200'] = talib.EMA(df['Mid_Close'], timeperiod=200)
         df['ema50'] = talib.EMA(df['Mid_Close'], timeperiod=50)
-        df = df.astype(float)
+        df['atr'] = talib.ATR(df['Mid_High'], df['Mid_Low'], df['Mid_Close'], timeperiod=500)
+        cols = df.columns
+        df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
         df = df.iloc[df.shape[0] - 100:, :]
         df.reset_index(drop=True, inplace=True)
 
-        df['fractal'] = [self._add_fractal(df, i) for i in range(df.shape[0])]
-        last_two_rows = df.iloc[-2:, :]
+        df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        df = df.append(last_two_rows, ignore_index=True)
+        df['fractal'] = [self._add_fractal(df, i, look_back=3) for i in range(df.shape[0])]
+        last_three_rows = df.iloc[-3:, :]
+        df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
 
-        df['beep_boop'] = [self._add_beep_boop(df, i) for i in range(df.shape[0])]
+        df = df.append(last_three_rows, ignore_index=True)
         df.reset_index(drop=True, inplace=True)
-
-        print('Second to last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-2]))
-        print('Last date for current beep boop sequence on ' + str(currency_pair) + ': ' + str(dates.iloc[-1]))
 
         return df
 

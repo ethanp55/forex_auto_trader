@@ -18,17 +18,18 @@ class CurrentDataSequence:
     def update_beep_boop_current_data_sequence(self, currency_pair):
         hours = 2
 
-        current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=0) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
+        current_minutes = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0)).minute
+        current_time = (datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0, minute=current_minutes - current_minutes % 5) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
 
-        from_time = str(current_time - timedelta(hours=4000))
+        from_time = str(current_time - timedelta(hours=350))
         to_time = str(current_time)
 
         print('Data for beep boop on ' + str(currency_pair) + ':')
 
         data_downloader = DataDownloader()
 
-        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask', 'mid'], 'H1', from_time, to_time)
+        candles, error_message = data_downloader.get_historical_data(currency_pair, ['bid', 'ask', 'mid'], 'M5', from_time, to_time)
 
         if error_message is not None:
             print(error_message)
