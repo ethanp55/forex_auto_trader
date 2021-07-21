@@ -29,7 +29,7 @@ weekend_day_nums = [4, 5, 6]
 
 beep_boop_gain_risk_ratio = {'GBP_USD': 1.7}
 beep_boop_pullback_cushion = {'GBP_USD': 0.0040}
-beep_boop_n_units_per_trade = {'GBP_USD': 1000}
+beep_boop_n_units_per_trade = {'GBP_USD': 5000}
 beep_boop_rounding = {'GBP_USD': 5}
 beep_boop_max_pips_to_risk = {'GBP_USD': 0.0100}
 beep_boop_use_trailing_stop = {'GBP_USD': True}
@@ -75,7 +75,7 @@ def _get_open_trades(dt):
 
         for currency_pair in open_beep_boop_pairs:
             open_beep_boop_pairs[currency_pair] = 0
-            beep_boop_n_units_per_trade[currency_pair] = 1000
+            beep_boop_n_units_per_trade[currency_pair] = 5000
             beep_boop_all_buys[currency_pair] = True
             beep_boop_all_sells[currency_pair] = True
 
