@@ -16,13 +16,14 @@ class DataDownloader:
     def __init__(self):
         # A list of currency pairs that we can download data for
         self.available_currency_pairs = ['EUR_USD', 'GBP_USD', 'USD_JPY', 'USD_CHF', 'USD_CAD', 'AUD_USD', 'NZD_USD',
-                                         'EUR_GBP', 'EUR_CHF', 'GBP_JPY', 'GBP_CHF', 'EUR_JPY']
+                                         'EUR_GBP', 'EUR_CHF', 'GBP_JPY', 'GBP_CHF', 'EUR_JPY', 'NZD_JPY', 'NZD_CHF', 'AUD_JPY']
 
         # A list of valid candle types
         self.available_candle_types = ['bid', 'ask', 'mid']
 
         # A list of valid time frame granularities (M1 = 1 minute, H4 = 4 hours, W = week, etc.)
-        self.available_time_frame_granularities = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W', 'M']
+        self.available_time_frame_granularities = [
+            'M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W', 'M']
 
     """
     This is a helper function that will make sure the parameters passed to the historical data download function are 
@@ -101,8 +102,10 @@ class DataDownloader:
         # Create the key word arguments for the API
         kwargs = {}
         kwargs['granularity'] = time_frame_granularity
-        kwargs['fromTime'] = api_context.datetime_to_str(datetime.strptime(from_time, '%Y-%m-%d %H:%M:%S'))
-        kwargs['toTime'] = api_context.datetime_to_str(datetime.strptime(to_time, '%Y-%m-%d %H:%M:%S'))
+        kwargs['fromTime'] = api_context.datetime_to_str(
+            datetime.strptime(from_time, '%Y-%m-%d %H:%M:%S'))
+        kwargs['toTime'] = api_context.datetime_to_str(
+            datetime.strptime(to_time, '%Y-%m-%d %H:%M:%S'))
         kwargs['alignmentTimezone'] = Config.get_time_zone()
 
         for candle_type in candle_types:
@@ -161,3 +164,28 @@ class DataDownloader:
 
         # Otherwise, return the candles data and null for the error message
         return response.get("candles", 200), None
+
+    def get_current_tick_data(self, currency_pair):
+        # Create the Oanda API context
+        api_context = v20.Context(
+            Config.get_host_name(),
+            Config.get_port(),
+            Config.get_ssl(),
+            application="sample_code",
+            token=Config.get_api_token(),
+            datetime_format=Config.get_date_format()
+        )
+
+        # Create the key word arguments for the API
+        kwargs = {}
+        kwargs['instruments'] = currency_pair
+
+        # Use the Oanda API context as well as the key word arguments to get the historical currency data
+        response = api_context.pricing.get(Config.get_account(), **kwargs)
+
+        # If the API call was unsucessful, return null for the candles data as well as the response error message
+        if response.status != 200:
+            return None, str(response) + '\n' + str(response.body)
+
+        # Otherwise, return the candles data and null for the error message
+        return response.get('prices', 200), None
