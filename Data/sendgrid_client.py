@@ -5,11 +5,11 @@ from Oanda.Config.config import Config
 class SendgridClient(object):
 
     @staticmethod
-    def send_email(currency_pair, signal):
+    def send_email(currency_pair, signal, prob):
         message = Mail(from_email=Config.get_sendgrid_email(),
                        to_emails=Config.get_sendgrid_email(),
                        subject=currency_pair + ' ' + str(signal),
-                       plain_text_content=str(signal) + ' signal on ' + str(currency_pair))
+                       plain_text_content=str(signal) + ' signal on ' + str(currency_pair) + ' with probs ' + str(prob))
 
         try:
             sg = SendGridAPIClient(Config.get_sendgrid_api_token())

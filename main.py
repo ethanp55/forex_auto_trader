@@ -1,17 +1,13 @@
 from datetime import datetime, timedelta
-from logging import error
 import pytz as tz
 import time
 from Data.current_data_sequence import CurrentDataSequence
 from Data.sendgrid_client import SendgridClient
 from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
-# from Model.stochastic_crossover import StochasticCrossover
 from Model.macd_crossover import MacdCrossover
-# from Model.beep_boop import BeepBoop
-# from AAT.aat import AAT
 import traceback
-import numpy as np
+from Model.cnn import CNN
 
 weekend_day_nums = [4, 5, 6]
 
@@ -591,18 +587,21 @@ def main():
             all_candles[currency_pair] = (float(bid_price), float(ask_price))
 
         predictions = {}
+        probs = {}
 
         for currency_pair in all_candles:
             curr_bid_open, curr_ask_open = all_candles[currency_pair]
-            pred = MacdCrossover.predict(currency_pair, data_sequences[currency_pair], curr_ask_open,
-                                         curr_bid_open, macd_cutoffs[currency_pair], macd_max_spread[currency_pair], macd_bar_length[currency_pair])
+            pred, prob = CNN.predict(
+                data_sequences[currency_pair], curr_ask_open, curr_bid_open, macd_max_spread[currency_pair])
             predictions[currency_pair] = pred
+            probs[currency_pair] = prob
 
         for currency_pair in predictions:
             pred = predictions[currency_pair]
+            prob = probs[currency_pair]
 
             if pred is not None and ((pred == 'buy' and macd_all_buys[currency_pair]) or (pred == 'sell' and macd_all_sells[currency_pair])):
-                SendgridClient.send_email(currency_pair, pred)
+                SendgridClient.send_email(currency_pair, pred, prob)
                 # curr_bid_open, curr_ask_open = all_candles[currency_pair]
                 # gain_risk_ratio = macd_gain_risk_ratio[currency_pair]
                 # data_sequence = data_sequences[currency_pair]

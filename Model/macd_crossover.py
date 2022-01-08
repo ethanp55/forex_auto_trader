@@ -4,10 +4,10 @@ class MacdCrossover(object):
 
     @staticmethod
     def predict(currency_pair, current_data, curr_ask_open, curr_bid_open, macd_cutoff, max_spread, max_bar_length):
-        ema200_2, ema50_2, sar2, mid_open2, mid_close2, mid_low2, mid_high2 = current_data.loc[current_data.index[-2], [
-            'ema200', 'ema50', 'sar', 'Mid_Open', 'Mid_Close', 'Mid_Low', 'Mid_High']]
-        ema200_1, ema50_1, sar1, mid_open1, mid_close1, mid_low1, mid_high1 = current_data.loc[current_data.index[-1], [
-            'ema200', 'ema50', 'sar', 'Mid_Open', 'Mid_Close', 'Mid_Low', 'Mid_High']]
+        ema200_2, ema25_2, sar2, mid_open2, mid_close2, mid_low2, mid_high2 = current_data.loc[current_data.index[-2], [
+            'ema200', 'ema25', 'sar', 'Mid_Open', 'Mid_Close', 'Mid_Low', 'Mid_High']]
+        ema200_1, ema25_1, sar1, mid_open1, mid_close1, mid_low1, mid_high1 = current_data.loc[current_data.index[-1], [
+            'ema200', 'ema25', 'sar', 'Mid_Open', 'Mid_Close', 'Mid_Low', 'Mid_High']]
         spread = abs(curr_ask_open - curr_bid_open)
         enough_volatility = spread <= max_spread
         macd2, macdsignal2 = current_data.loc[current_data.index[-2], [
@@ -15,8 +15,8 @@ class MacdCrossover(object):
         macd1, macdsignal1 = current_data.loc[current_data.index[-1], [
             'macd', 'macdsignal']]
         macd_vals = [0, macd2, macdsignal2, macd1, macdsignal1]
-        emas_buy_signal = ema200_2 < ema50_2 and ema200_1 < ema50_1
-        emas_sell_signal = ema200_2 > ema50_2 and ema200_1 > ema50_1
+        emas_buy_signal = ema200_2 < mid_low2 and ema200_1 < mid_low1
+        emas_sell_signal = ema200_2 > mid_high2 and ema200_1 > mid_high1
 
         print('New macd data for: ' + str(currency_pair))
         print('macd1: ' + str(macd1))
