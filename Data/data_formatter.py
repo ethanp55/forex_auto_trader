@@ -144,22 +144,6 @@ class DataFormatter(object):
     #     return gasf_data, price_data
 
     def format_stoch_macd_data(self, currency_pair, df):
-        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
-
-        # MACD
-        df['macd'] = pd.Series.ewm(df['Mid_Close'], span=12).mean(
-        ) - pd.Series.ewm(df['Mid_Close'], span=26).mean()
-        df['macdsignal'] = pd.Series.ewm(df['macd'], span=9).mean()
-
-        # EMA
-        df['ema200'] = pd.Series.ewm(df['Mid_Close'], span=200).mean()
-        df['ema50'] = pd.Series.ewm(df['Mid_Close'], span=50).mean()
-        df['ema25'] = pd.Series.ewm(df['Mid_Close'], span=25).mean()
-
-        # Parabolic SAR
-        cols = df.columns
-        df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)
-
         def psar(barsdata, iaf=0.02, maxaf=0.2):
             length = len(barsdata)
             high = list(barsdata['Mid_High'])
@@ -209,22 +193,94 @@ class DataFormatter(object):
                             psar[i] = high[i - 2]
             return psar
 
-        df['sar'] = psar(df)
+        def atr(barsdata):
+            high_low = barsdata['Mid_High'] - barsdata['Mid_Low']
+            high_close = np.abs(
+                barsdata['Mid_High'] - barsdata['Mid_Close'].shift())
+            low_close = np.abs(
+                barsdata['Mid_Low'] - barsdata['Mid_Close'].shift())
+            ranges = pd.concat([high_low, high_close, low_close], axis=1)
+            true_range = np.max(ranges, axis=1)
 
-        # ATR
-        high_low = df['Mid_High'] - df['Mid_Low']
-        high_close = np.abs(df['Mid_High'] - df['Mid_Close'].shift())
-        low_close = np.abs(df['Mid_Low'] - df['Mid_Close'].shift())
-        ranges = pd.concat([high_low, high_close, low_close], axis=1)
-        true_range = np.max(ranges, axis=1)
-        df['atr'] = true_range.rolling(14).sum() / 14
+            return true_range.rolling(14).sum() / 14
+
+        def rsi(barsdata, periods=14):
+            close_delta = barsdata['Mid_Close'].diff()
+
+            up = close_delta.clip(lower=0)
+            down = -1 * close_delta.clip(upper=0)
+            ma_up = up.ewm(com=periods - 1, adjust=True,
+                           min_periods=periods).mean()
+            ma_down = down.ewm(com=periods - 1, adjust=True,
+                               min_periods=periods).mean()
+
+            rsi = ma_up / ma_down
+            rsi = 100 - (100/(1 + rsi))
+
+            return rsi
+
+        def adx(high, low, close, lookback=14):
+            plus_dm = high.diff()
+            minus_dm = low.diff()
+            plus_dm[plus_dm < 0] = 0
+            minus_dm[minus_dm > 0] = 0
+
+            tr1 = pd.DataFrame(high - low)
+            tr2 = pd.DataFrame(abs(high - close.shift(1)))
+            tr3 = pd.DataFrame(abs(low - close.shift(1)))
+            frames = [tr1, tr2, tr3]
+            tr = pd.concat(frames, axis=1, join='inner').max(axis=1)
+            atr = tr.rolling(lookback).mean()
+
+            plus_di = 100 * (plus_dm.ewm(alpha=1/lookback).mean() / atr)
+            minus_di = abs(100 * (minus_dm.ewm(alpha=1/lookback).mean() / atr))
+            dx = (abs(plus_di - minus_di) / abs(plus_di + minus_di)) * 100
+            adx = ((dx.shift(1) * (lookback - 1)) + dx) / lookback
+            adx_smooth = adx.ewm(alpha=1/lookback).mean()
+
+            return adx_smooth
+
+        def stoch(high, low, close, lookback=14):
+            high_lookback = high.rolling(lookback).max()
+            low_lookback = low.rolling(lookback).min()
+            slow_k = (close - low_lookback) * 100 / \
+                (high_lookback - low_lookback)
+            slow_d = slow_k.rolling(3).mean()
+
+            return slow_k, slow_d
+
+        df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
+
+        df['sin_hour'] = np.sin(2 * np.pi * df['Date'].dt.hour / 24)
+        df['cos_hour'] = np.cos(2 * np.pi * df['Date'].dt.hour / 24)
+        df['sin_day'] = np.sin(2 * np.pi * df['Date'].dt.day / 7)
+        df['cos_day'] = np.cos(2 * np.pi * df['Date'].dt.day / 7)
+
+        cols = df.columns
+        df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)
+
+        df['ema200'] = pd.Series.ewm(df['Mid_Close'], span=200).mean()
+        df['ema100'] = pd.Series.ewm(df['Mid_Close'], span=100).mean()
+        df['ema50'] = pd.Series.ewm(df['Mid_Close'], span=50).mean()
+        df['ema25'] = pd.Series.ewm(df['Mid_Close'], span=25).mean()
+
+        df['atr'] = atr(df)
+        df['rsi'] = rsi(df)
+        df['adx'] = adx(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+        df['macd'] = pd.Series.ewm(df['Mid_Close'], span=12).mean(
+        ) - pd.Series.ewm(df['Mid_Close'], span=26).mean()
+        df['macdsignal'] = pd.Series.ewm(df['macd'], span=9).mean()
+        df['slowk'], df['slowd'] = stoch(
+            df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+
+        df['sar'] = psar(df)
 
         cols = df.columns
         df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)
 
         df.dropna(inplace=True)
         df.reset_index(drop=True, inplace=True)
-        df = df.iloc[df.shape[0] - 100:, :]
-        df.reset_index(drop=True, inplace=True)
+        # df = df.iloc[df.shape[0] - 100:, :]
+        # df.reset_index(drop=True, inplace=True)
 
         return df

@@ -6,6 +6,8 @@ import numpy as np
 model = load_model('Model/files/forex_macd_cnn')
 look_back_size = 200
 
+labels = {0: 'No trade', 1: 'Buy', 2: 'Sell'}
+
 
 class CNN(object):
 
@@ -19,10 +21,10 @@ class CNN(object):
     def predict(current_data, curr_ask_open, curr_bid_open, max_spread):
         model_data = current_data.drop(['Date', 'Bid_Open', 'Bid_High', 'Bid_Low',
                                        'Bid_Close', 'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close'], axis=1)
-        ema200_2, mid_low2, mid_high2 = current_data.loc[current_data.index[-2], [
-            'ema200', 'Mid_Low', 'Mid_High']]
-        ema200_1, mid_low1, mid_high1 = current_data.loc[current_data.index[-1], [
-            'ema200', 'Mid_Low', 'Mid_High']]
+        ema200_2, ema100_2, ema50_2, mid_low2, mid_high2 = current_data.loc[current_data.index[-2], [
+            'ema200', 'ema100', 'ema50', 'Mid_Low', 'Mid_High']]
+        ema200_1, ema100_1, ema50_1, mid_low1, mid_high1 = current_data.loc[current_data.index[-1], [
+            'ema200', 'ema100', 'ema50', 'Mid_Low', 'Mid_High']]
         spread = abs(curr_ask_open - curr_bid_open)
         enough_volatility = spread <= max_spread
         macd2, macdsignal2 = current_data.loc[current_data.index[-2], [
@@ -30,8 +32,8 @@ class CNN(object):
         macd1, macdsignal1 = current_data.loc[current_data.index[-1], [
             'macd', 'macdsignal']]
         macd_vals = [0, macd2, macdsignal2, macd1, macdsignal1]
-        emas_buy_signal = ema200_2 < mid_low2 and ema200_1 < mid_low1
-        emas_sell_signal = ema200_2 > mid_high2 and ema200_1 > mid_high1
+        emas_buy_signal = ema200_2 < ema100_2 and ema200_1 < ema100_1 and ema100_2 < ema50_2 and ema100_1 < ema50_1
+        emas_sell_signal = ema200_2 > ema100_2 and ema200_1 > ema100_1 and ema100_2 > ema50_2 and ema100_1 > ema50_1
 
         trade = None
 
@@ -48,6 +50,13 @@ class CNN(object):
             pred = model.predict(curr_seq.reshape(
                 1, curr_seq.shape[0], curr_seq.shape[1], curr_seq.shape[2]))
 
-            return trade, pred
+            pred_formatted = []
+            probs = list(pred[0])
+
+            for i in range(len(probs)):
+                num = probs[i]
+                pred_formatted.append(labels[i] + ' = ' + str(round(num, 5)))
+
+            return trade, pred_formatted
 
         return None, None
