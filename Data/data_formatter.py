@@ -193,7 +193,7 @@ class DataFormatter(object):
                             psar[i] = high[i - 2]
             return psar
 
-        def atr(barsdata):
+        def atr(barsdata, lookback=14):
             high_low = barsdata['Mid_High'] - barsdata['Mid_Low']
             high_close = np.abs(
                 barsdata['Mid_High'] - barsdata['Mid_Close'].shift())
@@ -202,7 +202,7 @@ class DataFormatter(object):
             ranges = pd.concat([high_low, high_close, low_close], axis=1)
             true_range = np.max(ranges, axis=1)
 
-            return true_range.rolling(14).sum() / 14
+            return true_range.rolling(lookback).sum() / lookback
 
         def rsi(barsdata, periods=14):
             close_delta = barsdata['Mid_Close'].diff()
@@ -249,6 +249,43 @@ class DataFormatter(object):
 
             return slow_k, slow_d
 
+        def stoch_rsi(data, k_window=3, d_window=3, window=14):
+            min_val = data.rolling(window=window, center=False).min()
+            max_val = data.rolling(window=window, center=False).max()
+
+            stoch = ((data - min_val) / (max_val - min_val)) * 100
+
+            slow_k = stoch.rolling(window=k_window, center=False).mean()
+
+            slow_d = slow_k.rolling(window=d_window, center=False).mean()
+
+            return slow_k, slow_d
+
+        def n_macd(macd, macdsignal, lookback=50):
+            n_macd = 2 * (((macd - macd.rolling(lookback).min()) /
+                          (macd.rolling(lookback).max() - macd.rolling(lookback).min()))) - 1
+            n_macdsignal = 2 * (((macdsignal - macdsignal.rolling(lookback).min()) / (
+                macdsignal.rolling(lookback).max() - macdsignal.rolling(lookback).min()))) - 1
+
+            return n_macd, n_macdsignal
+
+        def chop(df, lookback=14):
+            atr1 = atr(df, lookback=1)
+            high, low = df['Mid_High'], df['Mid_Low']
+
+            chop = np.log10(atr1.rolling(lookback).sum(
+            ) / (high.rolling(lookback).max() - low.rolling(lookback).min())) / np.log10(lookback)
+
+            return chop
+
+        def vo(volume, short_lookback=18, long_lookback=36):
+            short_ema = pd.Series.ewm(volume, span=short_lookback).mean()
+            long_ema = pd.Series.ewm(volume, span=long_lookback).mean()
+
+            volume_oscillator = (short_ema - long_ema) / long_ema
+
+            return volume_oscillator
+
         df.Date = pd.to_datetime(df.Date, format='%Y.%m.%d %H:%M:%S.%f')
 
         df['sin_hour'] = np.sin(2 * np.pi * df['Date'].dt.hour / 24)
@@ -266,14 +303,22 @@ class DataFormatter(object):
 
         df['atr'] = atr(df)
         df['rsi'] = rsi(df)
+        df['rsi_sma'] = df['rsi'].rolling(100).mean()
         df['adx'] = adx(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
         df['macd'] = pd.Series.ewm(df['Mid_Close'], span=12).mean(
         ) - pd.Series.ewm(df['Mid_Close'], span=26).mean()
         df['macdsignal'] = pd.Series.ewm(df['macd'], span=9).mean()
+        df['n_macd'], df['n_macdsignal'] = n_macd(df['macd'], df['macdsignal'])
         df['slowk'], df['slowd'] = stoch(
             df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
+        df['slowk_rsi'], df['slowd_rsi'] = stoch_rsi(df['rsi'])
 
         df['sar'] = psar(df)
+
+        df['chop14'] = chop(df)
+        df['chop36'] = chop(df, lookback=36)
+
+        df['vo'] = vo(df['Volume'])
 
         cols = df.columns
         df[cols[1:]] = df[cols[1:]].apply(pd.to_numeric)

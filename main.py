@@ -7,7 +7,6 @@ from Oanda.Services.order_handler import OrderHandler
 from Oanda.Services.data_downloader import DataDownloader
 from Model.macd_crossover import MacdCrossover
 import traceback
-from Model.cnn import CNN
 
 weekend_day_nums = [4, 5, 6]
 
@@ -94,10 +93,10 @@ def _get_dt():
 
     current_minutes = (datetime.now(tz=tz.timezone(
         'America/New_York')).replace(microsecond=0, second=0)).minute
-    dt_m5 = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0,
-                               minute=current_minutes - current_minutes % 5) + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
+    dt_m = datetime.strptime((datetime.now(tz=tz.timezone('America/New_York')).replace(microsecond=0, second=0,
+                                                                                       minute=current_minutes - current_minutes % 5) + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
 
-    return dt_m5
+    return dt_m
 
 
 def _get_open_trades(dt):
@@ -587,21 +586,18 @@ def main():
             all_candles[currency_pair] = (float(bid_price), float(ask_price))
 
         predictions = {}
-        probs = {}
 
         for currency_pair in all_candles:
             curr_bid_open, curr_ask_open = all_candles[currency_pair]
-            pred, prob = CNN.predict(
+            pred = MacdCrossover.predict(
                 data_sequences[currency_pair], curr_ask_open, curr_bid_open, macd_max_spread[currency_pair])
             predictions[currency_pair] = pred
-            probs[currency_pair] = prob
 
         for currency_pair in predictions:
             pred = predictions[currency_pair]
-            prob = probs[currency_pair]
 
             if pred is not None and ((pred == 'buy' and macd_all_buys[currency_pair]) or (pred == 'sell' and macd_all_sells[currency_pair])):
-                SendgridClient.send_email(currency_pair, pred, prob)
+                SendgridClient.send_email(currency_pair, pred)
                 # curr_bid_open, curr_ask_open = all_candles[currency_pair]
                 # gain_risk_ratio = macd_gain_risk_ratio[currency_pair]
                 # data_sequence = data_sequences[currency_pair]

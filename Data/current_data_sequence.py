@@ -232,7 +232,7 @@ class CurrentDataSequence:
                         minute=current_minutes - current_minutes % 5) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         current_time = datetime.strptime(current_time, '%Y-%m-%d %H:%M:%S')
 
-        from_time = str(current_time - timedelta(hours=350))
+        from_time = str(current_time - timedelta(hours=410))
         to_time = str(current_time)
 
         print('Data for stoch macd on ' + str(currency_pair) + ':')
@@ -253,13 +253,13 @@ class CurrentDataSequence:
             curr_date = datetime.utcfromtimestamp(
                 int(float(curr_date))).strftime('%Y-%m-%d %H:%M:%S')
             row = [curr_date, float(candle.bid.o), float(candle.bid.h), float(candle.bid.l), float(candle.bid.c), float(candle.ask.o), float(
-                candle.ask.h), float(candle.ask.l), float(candle.ask.c), float(candle.mid.o), float(candle.mid.h), float(candle.mid.l), float(candle.mid.c)]
+                candle.ask.h), float(candle.ask.l), float(candle.ask.c), float(candle.mid.o), float(candle.mid.h), float(candle.mid.l), float(candle.mid.c), float(candle.volume)]
             np_data.append(row)
 
         np_data = np.array(np_data)
 
         data_sequence = pd.DataFrame(np_data, columns=['Date', 'Bid_Open', 'Bid_High', 'Bid_Low', 'Bid_Close',
-                                     'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close'])
+                                     'Ask_Open', 'Ask_High', 'Ask_Low', 'Ask_Close', 'Mid_Open', 'Mid_High', 'Mid_Low', 'Mid_Close', 'Volume'])
         data_sequence.dropna(inplace=True)
         data_sequence.reset_index(drop=True, inplace=True)
 
