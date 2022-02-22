@@ -278,7 +278,7 @@ class DataFormatter(object):
 
             return chop
 
-        def vo(volume, short_lookback=18, long_lookback=36):
+        def vo(volume, short_lookback=5, long_lookback=10):
             short_ema = pd.Series.ewm(volume, span=short_lookback).mean()
             long_ema = pd.Series.ewm(volume, span=long_lookback).mean()
 
@@ -303,7 +303,7 @@ class DataFormatter(object):
 
         df['atr'] = atr(df)
         df['rsi'] = rsi(df)
-        df['rsi_sma'] = df['rsi'].rolling(100).mean()
+        df['rsi_sma'] = df['rsi'].rolling(50).mean()
         df['adx'] = adx(df['Mid_High'], df['Mid_Low'], df['Mid_Close'])
         df['macd'] = pd.Series.ewm(df['Mid_Close'], span=12).mean(
         ) - pd.Series.ewm(df['Mid_Close'], span=26).mean()

@@ -14,8 +14,8 @@ macd_gain_risk_ratio = {'GBP_USD': 2, 'AUD_JPY': 2, 'USD_CAD': 2, 'AUD_USD': 2,
                         'USD_CHF': 2, 'GBP_JPY': 2, 'EUR_USD': 2, 'USD_JPY': 2, 'NZD_USD': 2, 'EUR_JPY': 2, 'NZD_JPY': 2, 'NZD_CHF': 2, 'EUR_GBP': 2}
 macd_cutoffs = {'GBP_USD': 0.0004, 'AUD_JPY': 0.04, 'USD_CAD': 0.0004, 'AUD_USD': 0.0004,
                 'USD_CHF': 0.0004, 'GBP_JPY': 0.04, 'EUR_USD': 0.0004, 'USD_JPY': 0.04, 'NZD_USD': 0.0004, 'EUR_JPY': 0.04, 'NZD_JPY': 0.04, 'NZD_CHF': 0.0004, 'EUR_GBP': 0.0004}
-macd_max_spread = {'GBP_USD': 0.00025, 'AUD_JPY': 0.025, 'USD_CAD': 0.00025, 'AUD_USD': 0.00025,
-                   'USD_CHF': 0.00025, 'GBP_JPY': 0.025, 'EUR_USD': 0.00025, 'USD_JPY': 0.025, 'NZD_USD': 0.00025, 'EUR_JPY': 0.025, 'NZD_JPY': 0.025, 'NZD_CHF': 0.00025, 'EUR_GBP': 0.00025}
+macd_max_spread = {'GBP_USD': 0.20, 'AUD_JPY': 0.20, 'USD_CAD': 0.20, 'AUD_USD': 0.20,
+                   'USD_CHF': 0.20, 'GBP_JPY': 0.20, 'EUR_USD': 0.20, 'USD_JPY': 0.20, 'NZD_USD': 0.20, 'EUR_JPY': 0.20, 'NZD_JPY': 0.20, 'NZD_CHF': 0.20, 'EUR_GBP': 0.20}
 macd_bar_length = {'GBP_USD': 0.0005, 'AUD_JPY': 0.05, 'USD_CAD': 0.0005, 'AUD_USD': 0.0005,
                    'USD_CHF': 0.0005, 'GBP_JPY': 0.05, 'EUR_USD': 0.0005, 'USD_JPY': 0.05, 'NZD_USD': 0.0005, 'EUR_JPY': 0.05, 'NZD_JPY': 0.05, 'NZD_CHF': 0.0005, 'EUR_GBP': 0.0005}
 macd_pullback_cushion = {'GBP_USD': 0.0005, 'AUD_JPY': 0.05, 'USD_CAD': 0.0005, 'AUD_USD': 0.0005,
@@ -550,6 +550,7 @@ def main():
         # --------------------------------------------------------------------------------------------------------------
 
         data_sequences = {}
+        long_data_sequences = {}
 
         for currency_pair in open_macd_pairs:
             if open_macd_pairs[currency_pair] < macd_max_open_trades[currency_pair]:
@@ -560,10 +561,12 @@ def main():
                     error_flag = True
                     break
 
-                data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(
+                data_sequences[currency_pair], long_data_sequences[currency_pair] = current_data_sequence.get_stoch_macd_sequence_for_pair(
                     currency_pair)
                 print()
                 print(data_sequences[currency_pair])
+                print('---------------------------------------------')
+                print(long_data_sequences[currency_pair])
                 print()
 
         if error_flag:
@@ -590,7 +593,7 @@ def main():
         for currency_pair in all_candles:
             curr_bid_open, curr_ask_open = all_candles[currency_pair]
             pred = MacdCrossover.predict(
-                data_sequences[currency_pair], curr_ask_open, curr_bid_open, macd_max_spread[currency_pair])
+                data_sequences[currency_pair], long_data_sequences[currency_pair], curr_ask_open, curr_bid_open, macd_max_spread[currency_pair])
             predictions[currency_pair] = pred
 
         for currency_pair in predictions:
